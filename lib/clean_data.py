@@ -26,7 +26,7 @@ class DataRoot:
     @staticmethod
     def load_esg_data(transformed_data, file_name: str, sheet_name: str):
         """
-        Export transformed data to Excel in cleaned_data directory.
+        Export transformed data to Excel.
         """
         with pd.ExcelWriter(file_name) as writer:
             transformed_data.to_excel(writer, sheet_name=sheet_name, index=False)

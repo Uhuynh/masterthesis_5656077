@@ -9,48 +9,140 @@ class AnalyseData(DataRoot):
     def __init__(self):
         super().__init__()
 
-    def check_availability_esg_data(self):
+    def control(self):
+        esg_dict = self.extract_single_esg()
+        esg_availability = self.check_availability_esg(esg_dict)
+        self.check_time_range_esg(esg_dict, esg_availability)
+
+    def extract_single_esg(self):
+        """
+        Return ESG data of each provider.
+        """
+        # get companies with Sustainalytics ratings
         esg_bb = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'), sheet_name='ESG_BLOOMBERG')
         esg_bb = esg_bb.rename(columns={'company_name': 'Fundamental Ticker Equity'})
+        sustainalytics = esg_bb.loc[esg_bb['SUSTAINALYTICS_RANK'].notnull()]
+        sustainalytics['sustainalytics_rating'] = True
 
+        # get companies with RobecoSAM ratings
+        robecosam = esg_bb.loc[esg_bb['ROBECOSAM_TOTAL_STBLY_RANK'].notnull()]
+        robecosam['robecosam_rating'] = True
+
+        # get companies with Refinitiv ratings
+        refinitiv = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'), sheet_name='ESG_REFINITIV')
+        refinitiv['refinitiv_rating'] = True
+
+        return {'robecosam': robecosam, 'sustainalytics': sustainalytics, 'refinitiv': refinitiv}
+
+    def check_availability_esg(self, esg_dict):
+        """
+        Return companies with at least 1 ESG rating ('esg_data' = True)
+        and companies with no ESG rating ('esg_data' = False).
+        """
         # get list of companies
         company_list = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'),
                                      sheet_name='company_info')
         company_list = company_list[['Fundamental Ticker Equity']]
 
-        # get companies with Sustainalytics ratings
-        sustainalytics = esg_bb.loc[esg_bb['SUSTAINALYTICS_RANK'].notnull()]
-        sustainalytics['sustainalytics_rating'] = True
-        sustainalytics = company_list.merge(sustainalytics[['Fundamental Ticker Equity', 'sustainalytics_rating']],
-                                            on='Fundamental Ticker Equity',
-                                            how='left')
-        sustainalytics = sustainalytics.drop_duplicates(keep='first').reset_index(drop=True)
+        # get sustainalytics data availability
+        sustainalytics_short = company_list.merge(
+            esg_dict['sustainalytics'][['Fundamental Ticker Equity', 'sustainalytics_rating']],
+            on='Fundamental Ticker Equity',
+            how='left'
+        )
+        sustainalytics_short = sustainalytics_short.drop_duplicates(keep='first').reset_index(drop=True)
 
-        # get companies with RobecoSAM ratings
-        robecosam = esg_bb.loc[esg_bb['ROBECOSAM_TOTAL_STBLY_RANK'].notnull()]
-        robecosam['robecosam_rating'] = True
-        robecosam = company_list.merge(robecosam[['Fundamental Ticker Equity', 'robecosam_rating']],
-                                       on='Fundamental Ticker Equity',
-                                       how='left')
-        robecosam = robecosam.drop_duplicates(keep='first').reset_index(drop=True)
+        # get robecosam data availability
+        robecosam_short = company_list.merge(
+            esg_dict['robecosam'][['Fundamental Ticker Equity', 'robecosam_rating']],
+            on='Fundamental Ticker Equity',
+            how='left'
+        )
+        robecosam_short = robecosam_short.drop_duplicates(keep='first').reset_index(drop=True)
 
-        # get companies with Refinitiv ratings
-        refinitiv = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'), sheet_name='ESG_REFINITIV')
-        refinitiv['refinitiv_rating'] = True
-        refinitiv = company_list.merge(refinitiv[['Fundamental Ticker Equity', 'refinitiv_rating']],
-                                       on='Fundamental Ticker Equity',
-                                       how='left')
-        refinitiv = refinitiv.drop_duplicates(keep='first').reset_index(drop=True)
+        # get refinitiv data availability
+        refinitiv_short = company_list.merge(
+            esg_dict['refinitiv'][['Fundamental Ticker Equity', 'refinitiv_rating']],
+            on='Fundamental Ticker Equity',
+            how='left'
+        )
+        refinitiv_short = refinitiv_short.drop_duplicates(keep='first').reset_index(drop=True)
 
         # merge all data
-        result = sustainalytics.merge(robecosam, how='outer', on='Fundamental Ticker Equity')
-        result = result.merge(refinitiv, how='outer', on='Fundamental Ticker Equity')
+        result = sustainalytics_short.merge(robecosam_short, how='outer', on='Fundamental Ticker Equity')
+        result = result.merge(refinitiv_short, how='outer', on='Fundamental Ticker Equity')
 
-        # self.load_esg_data(result, file_name='\\esg_data_availability.xlsx', sheet_name='esg_data_availability')
-        with pd.ExcelWriter(os.path.join(self.cleaned_data_root, 'output.xlsx')) as writer:
-            result.to_excel(writer, sheet_name='esg_data_availability')
+        result.loc[
+            (result['refinitiv_rating'].isnull()) &
+            (result['robecosam_rating'].isnull()) &
+            (result['sustainalytics_rating'].isnull()),
+            'esg_data'
+        ] = False
+
+        result.loc[
+            (result['refinitiv_rating'].notnull()) |
+            (result['robecosam_rating'].notnull()) |
+            (result['sustainalytics_rating'].notnull()),
+            'esg_data'
+        ] = True
 
         return result
+
+    @staticmethod
+    def check_time_range_esg(esg_dict, esg_availability):
+        """
+        Return first and last available date of esg ratings.
+        """
+
+        # extract time range of sustainalytics rating
+        for company in esg_dict['sustainalytics']['Fundamental Ticker Equity'].unique():
+            temp = esg_dict['sustainalytics'].loc[esg_dict['sustainalytics']['Fundamental Ticker Equity'] == company]
+            temp = temp.sort_values(by='Dates')
+            esg_availability.loc[
+                esg_availability['Fundamental Ticker Equity'] == company,
+                'first_sustainalytics_date'
+            ] = list(temp['Dates'])[0]
+            esg_availability.loc[
+                esg_availability['Fundamental Ticker Equity'] == company,
+                'last_sustainalytics_date'
+            ] = list(temp['Dates'])[-1]
+
+        # extract time range of robecosam rating
+        for company in esg_dict['robecosam']['Fundamental Ticker Equity'].unique():
+            temp = esg_dict['robecosam'].loc[esg_dict['robecosam']['Fundamental Ticker Equity'] == company]
+            temp = temp.sort_values(by='Dates')
+            esg_availability.loc[
+                esg_availability['Fundamental Ticker Equity'] == company,
+                'first_robecosam_date'
+            ] = list(temp['Dates'])[0]
+            esg_availability.loc[
+                esg_availability['Fundamental Ticker Equity'] == company,
+                'last_robecosam_date'
+            ] = list(temp['Dates'])[-1]
+
+        # extract time range of refinitiv rating
+        for company in esg_dict['refinitiv']['Fundamental Ticker Equity'].unique():
+            temp = esg_dict['refinitiv'].loc[esg_dict['refinitiv']['Fundamental Ticker Equity'] == company]
+            temp = temp.sort_values(by='Dates')
+            esg_availability.loc[
+                esg_availability['Fundamental Ticker Equity'] == company,
+                'first_refinitiv_date'
+            ] = list(temp['Dates'])[0]
+            esg_availability.loc[
+                esg_availability['Fundamental Ticker Equity'] == company,
+                'last_refinitiv_date'
+            ] = list(temp['Dates'])[-1]
+
+        # convert datetime to date
+        esg_availability['first_sustainalytics_date'] = pd.to_datetime(esg_availability['first_sustainalytics_date']).dt.date
+        esg_availability['last_sustainalytics_date'] = pd.to_datetime(esg_availability['last_sustainalytics_date']).dt.date
+        esg_availability['first_robecosam_date'] = pd.to_datetime(esg_availability['first_robecosam_date']).dt.date
+        esg_availability['last_robecosam_date'] = pd.to_datetime(esg_availability['last_robecosam_date']).dt.date
+        esg_availability['first_refinitiv_date'] = pd.to_datetime(esg_availability['first_refinitiv_date']).dt.date
+        esg_availability['last_refinitiv_date'] = pd.to_datetime(esg_availability['last_refinitiv_date']).dt.date
+
+        return esg_availability
+
 
 
 class Helper:
@@ -210,4 +302,4 @@ class Helper:
             data.to_excel(writer, sheet_name='company_downloaded', index=False)
 
 
-AnalyseData().check_availability_esg_data()
+AnalyseData().control()
