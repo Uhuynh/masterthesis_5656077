@@ -3,6 +3,8 @@ import pandas as pd
 
 from lib.clean_data import DataRoot
 
+# ToDo make a class of variable names
+
 
 class AnalyseData(DataRoot):
 
@@ -142,6 +144,40 @@ class AnalyseData(DataRoot):
         esg_availability['last_refinitiv_date'] = pd.to_datetime(esg_availability['last_refinitiv_date']).dt.date
 
         return esg_availability
+
+    @staticmethod
+    def descriptive_statistics(esg_dict: dict, provider: str):
+        """
+        Return a dataframe of descriptive statistics for a rating provider year by year.
+        *arg
+            provider: choices are 'refinitiv' / 'robecosam' / 'sustainalytics'
+        """
+
+        esg_score_name = ''
+        if provider == 'refinitiv':
+            esg_score_name = 'TRESGS'
+        elif provider == 'robecosam':
+            esg_score_name = 'ROBECOSAM_TOTAL_STBLY_RANK'
+        elif provider == 'sustainalytics':
+            esg_score_name = 'SUSTAINALYTICS_RANK'
+
+        data = esg_dict[provider]
+        data['year'] = data['Dates'].dt.year
+
+        # get descriptive statistics by year
+        result = pd.DataFrame()
+        for year in data['year'].unique():
+            data_by_year = data.loc[data['year'] == year]
+            temp = pd.DataFrame(data_by_year[esg_score_name].describe()).T
+            temp['skewness'] = data_by_year[esg_score_name].skew()
+            temp['kurtosis'] = data_by_year[esg_score_name].kurtosis()
+            temp['year'] = year
+            temp['no_companies'] = len(data_by_year['Fundamental Ticker Equity'].unique())
+            result = result.append(temp, ignore_index=True)
+        result = result.sort_values(by='year')
+        result = result.round(decimals=2)
+        return result
+
 
 
 

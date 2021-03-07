@@ -1,4 +1,5 @@
 import os
+from datetime import date
 
 import pandas as pd
 
@@ -100,22 +101,22 @@ class RefinitivData(DataRoot):
         """
         ETL Process
         """
-        esg_bb = self.extract_esg_data(file_name='raw_data_refinitiv.xlsx', sheet_name='ESG Score')
-        transformed_esg_ek = self.transform_esg_data(esg_bb)
+        esg_ek = self.extract_esg_data(file_name='raw_data_refinitiv.xlsx', sheet_name='ESG Score')
+        transformed_esg_ek = self.transform_esg_data(esg_ek)
         self.load_esg_data(transformed_data=transformed_esg_ek,
                            file_name='cleaned_refinitiv_esg_data.xlsx',
                            sheet_name='ESG_REFINITIV')
 
     def transform_esg_data(self, esg_ek):
         # set index
-        esg_ek = esg_ek.set_index("Name")
+        esg_ek = esg_ek.set_index('Name')
 
         # rename columns and esg variables
         df = esg_ek.iloc[0, :]
         df = df.reset_index(drop=True)
-        df = df.iloc[1:]
+        # df = df.iloc[1:]
         df = df.to_frame()
-        df = df.assign(list=df[0].str.split("(")).explode("list")
+        df = df.assign(list=df['Code'].str.split("(")).explode("list")
         df = df.reset_index(drop=True)
         column_names = df["list"].iloc[::2]  # extract even indexes
         variable_names = df["list"].iloc[1::2]  # extract odd indexes
@@ -154,6 +155,15 @@ class RefinitivData(DataRoot):
         data = data.rename(columns={'company_isin': 'ID_ISIN'})
 
         data = data.merge(company_info, on='ID_ISIN', how='outer')
+        data = data.loc[data['Dates'].notnull()]
+
+        # shift Dates to 1 day backward to get end-of-month rating
+        data['Dates'] = data['Dates'] - pd.Timedelta('1 day')
+
+        # exclude data before 2006
+        data = data.loc[data['Dates'] > date(2005, 12, 31)].reset_index(drop=True)
+
+        data = data.loc[data['Fundamental Ticker Equity'].notnull()]
 
         return data
 
