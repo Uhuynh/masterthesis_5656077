@@ -1,12 +1,12 @@
 import os
 import pandas as pd
 
-from lib.clean_data import DataRoot
+from lib.clean_data import BaseClass
 
 # ToDo make a class of variable names
 
 
-class AnalyseData(DataRoot):
+class AnalyseData(BaseClass):
 
     def __init__(self):
         super().__init__()
