@@ -288,4 +288,4 @@ class CreditRating(BaseClass):
 
 # BloombergData().control()
 # RefinitivData().control()
-CreditRating().control()
+# CreditRating().control()
