@@ -185,7 +185,11 @@ class CreditRating(BaseClass):
         result = self.hard_code_rating(transformed)
         self.load_data(transformed_data=result,
                        file_name='cleaned_credit_rating.xlsx',
-                       sheet_name='credit_rating')
+                       sheet_name='SP_credit_rating')
+        populated_rating = self.fill_rating(result)
+        self.load_data(transformed_data=populated_rating,
+                       file_name='cleaned_credit_rating.xlsx',
+                       sheet_name='populated_SP_credit_rating')
 
     def transform_data(self, rating_zorka):
         company_info = self.extract_data(file_name='company_info.xlsx', sheet_name='company_info')
@@ -247,35 +251,85 @@ class CreditRating(BaseClass):
         return result
 
     @staticmethod
-    def hard_code_rating(result):
+    def hard_code_rating(data):
         """
         Transform credit rating to an ordinal scale
+            - NR: rating has not been assigned or is no longer assigned.
         """
-        result.loc[result['rating'] == 'D', 'ordinal_rating'] = 1
-        result.loc[result['rating'] == 'SD', 'ordinal_rating'] = 1
-        result.loc[result['rating'] == 'C', 'ordinal_rating'] = 2
-        result.loc[result['rating'] == 'CC', 'ordinal_rating'] = 3
-        result.loc[result['rating'] == 'CCC-', 'ordinal_rating'] = 4
-        result.loc[result['rating'] == 'CCC', 'ordinal_rating'] = 5
-        result.loc[result['rating'] == 'CCC+', 'ordinal_rating'] = 6
-        result.loc[result['rating'] == 'B-', 'ordinal_rating'] = 7
-        result.loc[result['rating'] == 'B', 'ordinal_rating'] = 8
-        result.loc[result['rating'] == 'B+', 'ordinal_rating'] = 9
-        result.loc[result['rating'] == 'BB-', 'ordinal_rating'] = 10
-        result.loc[result['rating'] == 'BB', 'ordinal_rating'] = 11
-        result.loc[result['rating'] == 'BB+', 'ordinal_rating'] = 12
-        result.loc[result['rating'] == 'BBB-', 'ordinal_rating'] = 13
-        result.loc[result['rating'] == 'BBB', 'ordinal_rating'] = 14
-        result.loc[result['rating'] == 'BBB+', 'ordinal_rating'] = 15
-        result.loc[result['rating'] == 'A-', 'ordinal_rating'] = 16
-        result.loc[result['rating'] == 'A', 'ordinal_rating'] = 17
-        result.loc[result['rating'] == 'A+', 'ordinal_rating'] = 18
-        result.loc[result['rating'] == 'AA-', 'ordinal_rating'] = 19
-        result.loc[result['rating'] == 'AA', 'ordinal_rating'] = 20
-        result.loc[result['rating'] == 'AA+', 'ordinal_rating'] = 21
-        result.loc[result['rating'] == 'AAA', 'ordinal_rating'] = 22
+        data.loc[data['rating'] == 'NR', 'ordinal_rating'] = 0
+        data.loc[data['rating'] == 'D', 'ordinal_rating'] = 1
+        data.loc[data['rating'] == 'SD', 'ordinal_rating'] = 1
+        data.loc[data['rating'] == 'C', 'ordinal_rating'] = 2
+        data.loc[data['rating'] == 'CC', 'ordinal_rating'] = 2
+        data.loc[data['rating'] == 'CCC-', 'ordinal_rating'] = 3
+        data.loc[data['rating'] == 'CCC', 'ordinal_rating'] = 3
+        data.loc[data['rating'] == 'CCC+', 'ordinal_rating'] = 3
+        data.loc[data['rating'] == 'B-', 'ordinal_rating'] = 4
+        data.loc[data['rating'] == 'B', 'ordinal_rating'] = 4
+        data.loc[data['rating'] == 'B+', 'ordinal_rating'] = 4
+        data.loc[data['rating'] == 'BB-', 'ordinal_rating'] = 5
+        data.loc[data['rating'] == 'BB', 'ordinal_rating'] = 5
+        data.loc[data['rating'] == 'BB+', 'ordinal_rating'] = 5
+        data.loc[data['rating'] == 'BBB-', 'ordinal_rating'] = 6
+        data.loc[data['rating'] == 'BBB', 'ordinal_rating'] = 6
+        data.loc[data['rating'] == 'BBB+', 'ordinal_rating'] = 6
+        data.loc[data['rating'] == 'A-', 'ordinal_rating'] = 7
+        data.loc[data['rating'] == 'A', 'ordinal_rating'] = 7
+        data.loc[data['rating'] == 'A+', 'ordinal_rating'] = 7
+        data.loc[data['rating'] == 'AA-', 'ordinal_rating'] = 8
+        data.loc[data['rating'] == 'AA', 'ordinal_rating'] = 8
+        data.loc[data['rating'] == 'AA+', 'ordinal_rating'] = 8
+        data.loc[data['rating'] == 'AAA', 'ordinal_rating'] = 9
 
-        return result
+        return data
+
+    @staticmethod
+    def fill_rating(result):
+        """
+        Populate credit ratings to monthly data from 2006 - 2020
+        """
+
+        result['rating_date'] = result['rating_date'].dt.date
+
+        # extract month and year from rating_date
+        result['rating_month'] = result['rating_date'].dt.month
+        result['rating_year'] = result['rating_date'].dt.year
+
+        # generate list of month and year from 2006 to 2020
+        daterange = pd.date_range(start=date(2006, 1, 1), end=date(2020, 12, 1), freq='1M').to_frame()
+        daterange['rating_month'] = daterange[0].dt.month
+        daterange['rating_year'] = daterange[0].dt.year
+        daterange = daterange[['rating_month', 'rating_year']].reset_index(drop=True)
+
+        ########################
+        # populate credit rating
+        ########################
+
+        rating = result[['Fundamental Ticker Equity', 'ordinal_rating', 'rating_month', 'rating_year']]
+
+        # drop duplicated rating
+        # there are cases when companies have credit rating changes twice within a month
+        # but these cases are very rare, and thus we only keep the latest value within that month
+        rating = rating.drop_duplicates(keep='last')
+
+        # populate
+        populated_rating = []
+        for company in rating['Fundamental Ticker Equity'].unique():
+            df = rating.loc[rating['Fundamental Ticker Equity'] == company]
+            df = daterange.merge(df, on=['rating_month', 'rating_year'], how='left')
+            df = df.fillna(method='ffill')  # propagate last valid observation forward to next valid
+            populated_rating.append(df)
+        populated_rating = pd.concat(populated_rating)
+
+        return populated_rating
+
+
+
+
+
+
+
+
 
 
 
