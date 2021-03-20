@@ -208,12 +208,7 @@ class CreditRating(BaseClass):
 
         # remove NA
         data = data.loc[data['rating'].notnull()]
-
-        # exclude ratings before 2006
         data['rating_date'] = data['rating_date'].dt.date
-        data = data.loc[data['rating_date'] > date(2005, 12, 21)]
-
-        data['source'] = 'Zorka'
 
         ###############################
         # transform data from Bloomberg
@@ -237,15 +232,13 @@ class CreditRating(BaseClass):
         rating_changes_bb = rating_changes_bb.rename(columns={'Date': 'rating_date',
                                                               'Security Name': 'Fundamental Ticker Equity'})
 
-        rating_changes_bb['source'] = 'Bloomberg'
-
         ###################################
         # merge data from Zorka & Bloomberg
         ###################################
         result = data.merge(rating_changes_bb, how='outer', on=['Fundamental Ticker Equity', 'rating_date', 'rating'])
         result = result.sort_values(['Fundamental Ticker Equity', 'rating_date'], ascending=True)
 
-        result = result.drop(columns=['companyid', 'source_x', 'source_y'])
+        result = result.drop(columns=['companyid'])
         result = result.drop_duplicates(keep='first')
 
         return result
@@ -284,16 +277,17 @@ class CreditRating(BaseClass):
         return data
 
     @staticmethod
-    def fill_rating(result):
+    def fill_rating(data):
         """
         Populate credit ratings to monthly data from 2006 - 2020
         """
 
-        result['rating_date'] = result['rating_date'].dt.date
+        # data['rating_date'] = data['rating_date'].dt.date
+        data['rating_date'] = pd.to_datetime(data['rating_date'])
 
         # extract month and year from rating_date
-        result['rating_month'] = result['rating_date'].dt.month
-        result['rating_year'] = result['rating_date'].dt.year
+        data['rating_month'] = data['rating_date'].dt.month
+        data['rating_year'] = data['rating_date'].dt.year
 
         # generate list of month and year from 2006 to 2020
         daterange = pd.date_range(start=date(2006, 1, 1), end=date(2020, 12, 1), freq='1M').to_frame()
@@ -305,27 +299,43 @@ class CreditRating(BaseClass):
         # populate credit rating
         ########################
 
-        rating = result[['Fundamental Ticker Equity', 'ordinal_rating', 'rating_month', 'rating_year']]
+        rating = data[['Fundamental Ticker Equity', 'ordinal_rating', 'rating_month', 'rating_year']]
 
         # drop duplicated rating
         # there are cases when companies have credit rating changes twice within a month
         # but these cases are very rare, and thus we only keep the latest value within that month
         rating = rating.drop_duplicates(keep='last')
 
-        # populate
+        # populate (this also excludes data after 2020)
         populated_rating = []
         for company in rating['Fundamental Ticker Equity'].unique():
             df = rating.loc[rating['Fundamental Ticker Equity'] == company]
-            df = daterange.merge(df, on=['rating_month', 'rating_year'], how='left')
+            df = daterange.merge(df, on=['rating_month', 'rating_year'], how='outer')
             df = df.fillna(method='ffill')  # propagate last valid observation forward to next valid
             populated_rating.append(df)
         populated_rating = pd.concat(populated_rating)
 
+        # only get data between 2006 and 2020
+        populated_rating = populated_rating.loc[(populated_rating['rating_year'] >= 2006) &
+                                                (populated_rating['rating_year'] <= 2020)]
+
         return populated_rating
 
 
+class AccountingData(BaseClass):
 
+    def __init__(self):
+        super().__init__()
 
+    def control(self):
+        """
+        ETL Process
+        """
+        accounting = self.extract_data(file_name='raw_data_bloomberg_march.xlsx', sheet_name='accounting yearly')
+        transformed_esg_bb = self.transform_data(accounting)
+        self.load_data(transformed_data=transformed_esg_bb,
+                       file_name='cleaned_bb_esg_data.xlsx',
+                       sheet_name='ESG_BLOOMBERG')
 
 
 
@@ -343,3 +353,4 @@ class CreditRating(BaseClass):
 # BloombergData().control()
 # RefinitivData().control()
 # CreditRating().control()
+# AccountingData().control()

@@ -217,6 +217,33 @@ class AnalyseData(BaseClass):
         result = result.round(decimals=2)
         return result
 
+    @staticmethod
+    def count_data(cleaned_data_dict: dict):
+        """
+        Returns a dataframe of counted numbers of each ordinal credit rating each year
+        """
+        data = cleaned_data_dict['populated_sp']
+        data = data.drop(columns=['rating_month'], index=1)
+        data = data.loc[data['ordinal_rating'].notnull()]
+        data = data.drop_duplicates(keep='last')
+
+
+        result = pd.DataFrame()
+        for year in data['rating_year'].unique():
+            data_by_year = data.loc[data['rating_year'] == year]
+            count_dict = {}
+            for i in range(0, 10):
+                count_dict['rating' + str(i)] = len(data_by_year.loc[data_by_year['ordinal_rating'] == i].index)
+            df = pd.DataFrame.from_dict(data=count_dict, orient='index').T
+            df['total'] = len(data_by_year.index)
+            df['year'] = year
+            result = result.append(df, ignore_index=True)
+        result = result.sort_values(by='year')
+
+        return result
+
+
+
 
 class Helper:
 
