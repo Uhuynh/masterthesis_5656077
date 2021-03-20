@@ -331,26 +331,59 @@ class AccountingData(BaseClass):
         """
         ETL Process
         """
-        accounting = self.extract_data(file_name='raw_data_bloomberg_march.xlsx', sheet_name='accounting yearly')
-        transformed_esg_bb = self.transform_data(accounting)
-        self.load_data(transformed_data=transformed_esg_bb,
-                       file_name='cleaned_bb_esg_data.xlsx',
-                       sheet_name='ESG_BLOOMBERG')
+        accounting_data = self.extract_data(file_name='raw_data_bloomberg_march.xlsx', sheet_name='accounting yearly')
+        transformed_data = self.transform_data(accounting_data)
+        self.load_data(transformed_data=transformed_data,
+                       file_name='cleaned_accounting_data.xlsx',
+                       sheet_name='accounting_data')
+
+    def transform_data(self, accounting_data):
+        """
+        Transform accounting data from wide to long format.
+        """
+
+        # fill fundamental ticker to missing places
+        accounting_data.iloc[2, :] = accounting_data.iloc[2, :].fillna(method='ffill', axis=0)
+
+        # rename columns
+        accounting_data = accounting_data.rename(columns=accounting_data.iloc[2])
+
+        # remove redundant headers
+        accounting_data = accounting_data.iloc[4:, :]
+        accounting_data = accounting_data.reset_index(drop=True)
+
+        # reset index
+        accounting_data = accounting_data.rename(columns={accounting_data.columns[0]: 'Dates'})
+        accounting_data = accounting_data.set_index('Dates')
+
+        # reshape data (also drop NA values)
+        temp = accounting_data.T
+        temp = temp.set_index(['Dates'], append=True)
+        temp = temp.reset_index()
+        temp = temp.rename(columns={temp.columns[0]: 'company_name', temp.columns[1]: 'variable'})
+
+        data = temp.melt(id_vars=['company_name', 'variable'], var_name='Dates')
+        data = pd.pivot_table(
+            data,
+            values='value',
+            index=['company_name', 'Dates'],
+            columns=['variable'],
+            aggfunc='first'
+        )
+        data = data.reset_index()
+        data = data.rename(columns={data.columns[0]: 'company_name', data.columns[1]: 'Dates'})
+        data['Dates'] = pd.to_datetime(data['Dates'])
+        data['Dates'] = data['Dates'].dt.date
+
+        # sort values
+        data = data.sort_values(['company_name', 'Dates'], ascending=True)
+
+        return data
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-# BloombergData().control()
-# RefinitivData().control()
-# CreditRating().control()
-# AccountingData().control()
+if __name__ == "__main__":
+    # BloombergData().control()
+    # RefinitivData().control()
+    # CreditRating().control()
+    # AccountingData().control()
+    pass
