@@ -1,13 +1,13 @@
 import os
 import pandas as pd
 
-from lib.clean_data import BaseClass
+from lib.clean_data import CleanBase
 
 
 # ToDo make a class of variable names
 
 
-class AnalyseData(BaseClass):
+class AnalyseData(CleanBase):
 
     def __init__(self):
         super().__init__()
@@ -317,53 +317,4 @@ class AnalyseData(BaseClass):
     #     return result
 
 
-    @staticmethod
-    def h1_availability(cleaned_data_dict):
-        """
-        Identify companies that can be analyzed for H1 from each ESG providers
-        """
-        pass
-
-
-class Helper:
-
-    @staticmethod
-    def check_availability_to_analyse():
-        project_root = os.path.dirname(os.path.dirname(__file__))
-        data_root = os.path.join(project_root, 'data', 'uyen\'s data')
-
-        # get accounting data
-        data = pd.read_excel(os.path.join(data_root, 'company_list_final.xlsx'),
-                             sheet_name='general_data_info')
-
-        # check dates
-        data.loc[
-            (
-                    (data['first_esg_sustainalytics_date'] >= data['first_credit_rating_date']) &
-                    (data['first_esg_sustainalytics_date'] >= data['first_accounting_data_date'])
-            ) |
-            (
-                    (data['first_esg_robecosam_date'] >= data['first_credit_rating_date']) &
-                    (data['first_esg_robecosam_date'] >= data['first_accounting_data_date'])
-            ),
-            'can be analyzed?'
-        ] = 'yes'
-
-        data.loc[
-            (
-                    (data['first_esg_sustainalytics_date'] < data['first_credit_rating_date']) |
-                    (data['first_esg_sustainalytics_date'] < data['first_accounting_data_date'])
-            ) |
-            (
-                    (data['first_esg_robecosam_date'] < data['first_credit_rating_date']) &
-                    (data['first_esg_robecosam_date'] < data['first_accounting_data_date'])
-            ),
-            'can be analyzed?'
-        ] = 'no'
-
-        # export data
-        with pd.ExcelWriter('company_list' + '.xlsx') as writer:
-            data.to_excel(writer, sheet_name='company_downloaded', index=False)
-
-
-AnalyseData().control()
+# AnalyseData().control()
