@@ -2,6 +2,7 @@ import os
 from datetime import date
 
 import pandas as pd
+import numpy as np
 
 
 class BaseClass:
@@ -11,6 +12,7 @@ class BaseClass:
         self.project_root = os.path.dirname(os.path.dirname(__file__))
         self.raw_data_root = os.path.join(self.project_root, 'data', 'raw_data')
         self.cleaned_data_root = os.path.join(self.project_root, 'data', 'cleaned_data')
+        self.company_info = pd.read_excel(os.path.join(self.raw_data_root, 'company_info.xlsx'), sheet_name='company_info')
 
     def extract_data(self, file_name: str, sheet_name: str):
         """
@@ -31,7 +33,6 @@ class BaseClass:
         """
         with pd.ExcelWriter(file_name) as writer:
             transformed_data.to_excel(writer, sheet_name=sheet_name, index=False)
-
 
 
 class BloombergData(BaseClass):
@@ -181,11 +182,13 @@ class CreditRating(BaseClass):
         ETL Process
         """
         rating_zorka = self.extract_data(file_name='credit_rating_Zorka.xlsx', sheet_name='credit_rating_Zorka')
+
         transformed = self.transform_data(rating_zorka)
         result = self.hard_code_rating(transformed)
         self.load_data(transformed_data=result,
                        file_name='cleaned_credit_rating.xlsx',
                        sheet_name='SP_credit_rating')
+
         populated_rating = self.fill_rating(result)
         self.load_data(transformed_data=populated_rating,
                        file_name='cleaned_credit_rating.xlsx',
@@ -290,7 +293,7 @@ class CreditRating(BaseClass):
         data['rating_year'] = data['rating_date'].dt.year
 
         # generate list of month and year from 2006 to 2020
-        daterange = pd.date_range(start=date(2006, 1, 1), end=date(2020, 12, 1), freq='1M').to_frame()
+        daterange = pd.date_range(start=date(2006, 1, 1), end=date(2020, 12, 31), freq='1M').to_frame()
         daterange['rating_month'] = daterange[0].dt.month
         daterange['rating_year'] = daterange[0].dt.year
         daterange = daterange[['rating_month', 'rating_year']].reset_index(drop=True)
@@ -302,7 +305,7 @@ class CreditRating(BaseClass):
         rating = data[['Fundamental Ticker Equity', 'ordinal_rating', 'rating_month', 'rating_year']]
 
         # drop duplicated rating
-        # there are cases when companies have credit rating changes twice within a month
+        # there are cases when companies have credit rating changes more than one time within a month
         # but these cases are very rare, and thus we only keep the latest value within that month
         rating = rating.drop_duplicates(keep='last')
 
@@ -319,6 +322,9 @@ class CreditRating(BaseClass):
         populated_rating = populated_rating.loc[(populated_rating['rating_year'] >= 2006) &
                                                 (populated_rating['rating_year'] <= 2020)]
 
+        # drop NA values
+        populated_rating = populated_rating.dropna(axis=0, how='any')
+
         return populated_rating
 
 
@@ -332,10 +338,17 @@ class AccountingData(BaseClass):
         ETL Process
         """
         accounting_data = self.extract_data(file_name='raw_data_bloomberg_march.xlsx', sheet_name='accounting yearly')
+
         transformed_data = self.transform_data(accounting_data)
         self.load_data(transformed_data=transformed_data,
-                       file_name='cleaned_accounting_data.xlsx',
+                       file_name='cleaned_data.xlsx',
                        sheet_name='accounting_data')
+
+        data = self.calculate_control_var(transformed_data)
+        result = self.clean(data)
+        self.load_data(transformed_data=result,
+                       file_name='cleaned_data.xlsx',
+                       sheet_name='control_var')
 
     def transform_data(self, accounting_data):
         """
@@ -377,8 +390,43 @@ class AccountingData(BaseClass):
 
         # sort values
         data = data.sort_values(['company_name', 'Dates'], ascending=True)
+        data = data.rename(columns={'company_name': 'Fundamental Ticker Equity'})
 
         return data
+
+    @staticmethod
+    def calculate_control_var(data):
+        """
+        Calculate additional control variables
+            - SIZE = natural log of Total Assets
+            - LEVERAGE = (Long-term Borrowing / Total Assets) * 100
+            - ROA = (EBIT / Total Assets) * 100
+        """
+        data['SIZE'] = np.log(data['BS_TOT_ASSET'])
+        data['LEVERAGE'] = (data['BS_LT_BORROW'] / data['BS_TOT_ASSET']) * 100
+        data['ROA'] = (data['EBIT'] / data['BS_TOT_ASSET']) * 100
+
+        return data
+
+    @staticmethod
+    def clean(transformed_data):
+        """
+        Exclude companies that do not have enough control variables
+        """
+        data = transformed_data[['SIZE',
+                                 'LEVERAGE',
+                                 'ROA',
+                                 'OPER_MARGIN',
+                                 'INTEREST_COVERAGE_RATIO',
+                                 'Fundamental Ticker Equity',
+                                 'Dates']]
+
+        # drop row that has NA values
+        data = data.dropna(axis=0, how='any')
+
+        return data
+
+
 
 
 if __name__ == "__main__":

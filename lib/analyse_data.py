@@ -11,16 +11,15 @@ class AnalyseData(BaseClass):
 
     def __init__(self):
         super().__init__()
-        self.company_info = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'),
-                                          sheet_name='company_info')
 
     def control(self):
         cleaned_data_dict = self.extract_cleaned_data()
+
         credit_rating_summary = self.count_data(cleaned_data_dict)
         corr_matrix_esg = self.corr_matrix(cleaned_data_dict)
         refinitiv_statistics = self.descriptive_statistics(cleaned_data_dict, provider='refinitiv')
 
-        esg_availability = self.check_data_availability(cleaned_data_dict)
+        # esg_availability = self.check_data_availability(cleaned_data_dict)
         self.check_time_range(cleaned_data_dict)
 
     def extract_cleaned_data(self):
@@ -30,42 +29,112 @@ class AnalyseData(BaseClass):
             - RobecoSAM (S&P Global): ESG rating
             - Refinitiv: ESG rating
             - S&P: credit rating
-            - accounting: accounting data
+            - control_var: control variables
         """
-
-        # get companies with Sustainalytics ESG ratings
         esg_bb = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'), sheet_name='ESG_BLOOMBERG')
         esg_bb = esg_bb.rename(columns={'company_name': 'Fundamental Ticker Equity'})
+
+        # get companies with Sustainalytics ESG ratings
         sustainalytics = esg_bb.loc[esg_bb['SUSTAINALYTICS_RANK'].notnull()]
-        sustainalytics['sustainalytics_rating'] = True
 
         # get companies with RobecoSAM ESG ratings
         robecosam = esg_bb.loc[esg_bb['ROBECOSAM_TOTAL_STBLY_RANK'].notnull()]
-        robecosam['robecosam_rating'] = True
 
         # get companies with Refinitiv ESG ratings
         refinitiv = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'), sheet_name='ESG_REFINITIV')
-        refinitiv['refinitiv_rating'] = True
 
         # get companies with S&P credit rating
         sp = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'), sheet_name='SP_credit_rating')
-        sp['sp_rating'] = True
 
         # get companies with populated S&P credit rating
         populated_sp = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'),
                                      sheet_name='populated_SP_credit_rating')
 
         # get accounting data of companies
-        accounting_data = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'),
-                                        sheet_name='accounting_data')
-        accounting_data['accounting_data'] = True
+        control_var = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'),
+                                    sheet_name='control_var')
 
         return {'robecosam': robecosam,
                 'sustainalytics': sustainalytics,
                 'refinitiv': refinitiv,
                 'sp': sp,
                 'populated_sp': populated_sp,
-                'accounting': accounting_data}
+                'control_var': control_var}
+
+    def check_time_range(self, cleaned_data_dict):
+        """
+        Return first and last available date of each company for each type of variable.
+        """
+        data_timerange = self.company_info[['Fundamental Ticker Equity']]
+
+        # extract time range of sustainalytics rating
+        for company in cleaned_data_dict['sustainalytics']['Fundamental Ticker Equity'].unique():
+            temp = cleaned_data_dict['sustainalytics'].loc[
+                cleaned_data_dict['sustainalytics']['Fundamental Ticker Equity'] == company]
+            temp = temp.sort_values(by='Dates')
+            data_timerange.loc[
+                data_timerange['Fundamental Ticker Equity'] == company,
+                'first_sustainalytics_date'
+            ] = list(temp['Dates'])[0]
+            data_timerange.loc[
+                data_timerange['Fundamental Ticker Equity'] == company,
+                'last_sustainalytics_date'
+            ] = list(temp['Dates'])[-1]
+
+        # extract time range of robecosam rating
+        for company in cleaned_data_dict['robecosam']['Fundamental Ticker Equity'].unique():
+            temp = cleaned_data_dict['robecosam'].loc[
+                cleaned_data_dict['robecosam']['Fundamental Ticker Equity'] == company]
+            temp = temp.sort_values(by='Dates')
+            data_timerange.loc[
+                data_timerange['Fundamental Ticker Equity'] == company,
+                'first_robecosam_date'
+            ] = list(temp['Dates'])[0]
+            data_timerange.loc[
+                data_timerange['Fundamental Ticker Equity'] == company,
+                'last_robecosam_date'
+            ] = list(temp['Dates'])[-1]
+
+        # extract time range of refinitiv rating
+        for company in cleaned_data_dict['refinitiv']['Fundamental Ticker Equity'].unique():
+            temp = cleaned_data_dict['refinitiv'].loc[
+                cleaned_data_dict['refinitiv']['Fundamental Ticker Equity'] == company]
+            temp = temp.sort_values(by='Dates')
+            data_timerange.loc[
+                data_timerange['Fundamental Ticker Equity'] == company,
+                'first_refinitiv_date'
+            ] = list(temp['Dates'])[0]
+            data_timerange.loc[
+                data_timerange['Fundamental Ticker Equity'] == company,
+                'last_refinitiv_date'
+            ] = list(temp['Dates'])[-1]
+
+        # extract first available date of credit rating
+        for company in cleaned_data_dict['sp']['Fundamental Ticker Equity'].unique():
+            temp = cleaned_data_dict['sp'].loc[cleaned_data_dict['sp']['Fundamental Ticker Equity'] == company]
+            temp = temp.sort_values(by='rating_date')
+            data_timerange.loc[
+                data_timerange['Fundamental Ticker Equity'] == company,
+                'first_credit_rtg_date'
+            ] = list(temp['rating_date'])[0]
+
+        # extract time range of control variables
+        for company in cleaned_data_dict['control_var']['Fundamental Ticker Equity'].unique():
+            temp = cleaned_data_dict['control_var'].loc[cleaned_data_dict['control_var']['Fundamental Ticker Equity'] == company]
+            temp = temp.sort_values(by='Dates')
+            data_timerange.loc[
+                data_timerange['Fundamental Ticker Equity'] == company,
+                'first_accounting_date'
+            ] = list(temp['Dates'])[0]
+            data_timerange.loc[
+                data_timerange['Fundamental Ticker Equity'] == company,
+                'last_accounting_date'
+            ] = list(temp['Dates'])[-1]
+
+        # convert columns from datetime to date
+        data_timerange.iloc[:, 1:] = data_timerange.iloc[:, 1:].apply(lambda x: x.dt.date)
+
+        return data_timerange
 
     @staticmethod
     def count_data(cleaned_data_dict: dict):
@@ -101,7 +170,8 @@ class AnalyseData(BaseClass):
         # retrieve esg data
         robecosam = cleaned_data_dict['robecosam'][['ROBECOSAM_TOTAL_STBLY_RANK', 'Fundamental Ticker Equity', 'Dates']]
         refinitiv = cleaned_data_dict['refinitiv'][['TRESGS', 'Fundamental Ticker Equity', 'Dates']]
-        sustainalytics = cleaned_data_dict['sustainalytics'][['SUSTAINALYTICS_RANK', 'Fundamental Ticker Equity', 'Dates']]
+        sustainalytics = cleaned_data_dict['sustainalytics'][
+            ['SUSTAINALYTICS_RANK', 'Fundamental Ticker Equity', 'Dates']]
 
         # inner join
         df_list = [robecosam, refinitiv, sustainalytics]
@@ -147,148 +217,105 @@ class AnalyseData(BaseClass):
         result = result.round(decimals=2)
         return result
 
-    def check_data_availability(self, cleaned_data_dict):
-        """
-        Return companies with:
-            - at least 1 ESG rating ('esg_data' = True)
-            - no ESG rating ('esg_data' = False).
-            - credit rating (credit_rating = True, otherwise False)
-        """
-        # get list of companies
-        company_list = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'),
-                                     sheet_name='company_info')
-        company_list = company_list[['Fundamental Ticker Equity']]
+    def descriptive_statistics_accounting(self, cleaned_data_dict: dict):
+        """Returns a dataframe of descriptive statistics for accounting data"""
+        data = cleaned_data_dict['accounting'][['SIZE',
+                                                'LEVERAGE',
+                                                'ROA',
+                                                'INTEREST_COVERAGE_RATIO',
+                                                'OPER_MARGIN',
+                                                'company_name']]
 
-        # get sustainalytics esg rating availability
-        sustainalytics_short = company_list.merge(
-            cleaned_data_dict['sustainalytics'][['Fundamental Ticker Equity', 'sustainalytics_rating']],
-            on='Fundamental Ticker Equity',
-            how='left'
-        )
-        sustainalytics_short = sustainalytics_short.drop_duplicates(keep='first').reset_index(drop=True)
+        # get list of companies that cannot be analyzed
+        company_to_remove = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'),
+                                          sheet_name='data_timerange')
+        company_to_remove = company_to_remove.loc[
+            (company_to_remove['first_sustainalytics_date'].isnull()) &
+            (company_to_remove['first_robecosam_date'].isnull()) &
+            (company_to_remove['first_refinitiv_date'].isnull())
+            ]
 
-        # get robecosam esg rating availability
-        robecosam_short = company_list.merge(
-            cleaned_data_dict['robecosam'][['Fundamental Ticker Equity', 'robecosam_rating']],
-            on='Fundamental Ticker Equity',
-            how='left'
-        )
-        robecosam_short = robecosam_short.drop_duplicates(keep='first').reset_index(drop=True)
+        company_to_remove = list(company_to_remove['Fundamental Ticker Equity'])
 
-        # get refinitiv esg rating availability
-        refinitiv_short = company_list.merge(
-            cleaned_data_dict['refinitiv'][['Fundamental Ticker Equity', 'refinitiv_rating']],
-            on='Fundamental Ticker Equity',
-            how='left'
-        )
-        refinitiv_short = refinitiv_short.drop_duplicates(keep='first').reset_index(drop=True)
+        # exclude these companies from cleaned accounting data
+        new_data = data[~data.company_name.isin(company_to_remove)]
+        new_data = new_data.drop(columns=['company_name'])
 
-        # get S&P credit rating availability
-        sp_short = company_list.merge(
-            cleaned_data_dict['sp'][['Fundamental Ticker Equity', 'sp_rating']],
-            on='Fundamental Ticker Equity',
-            how='left'
-        )
-        sp_short = sp_short.drop_duplicates(keep='first').reset_index(drop=True)
+        # get descriptive statistics
+        result = new_data.describe().T
+        result = result.round(decimals=2)
 
-        # merge all data
-        result = sustainalytics_short.merge(robecosam_short, how='outer', on='Fundamental Ticker Equity')
-        result = result.merge(refinitiv_short, how='outer', on='Fundamental Ticker Equity')
-        result = result.merge(sp_short, how='outer', on='Fundamental Ticker Equity')
+    # def check_data_availability(self, cleaned_data_dict):
+    #     """
+    #     Return companies with:
+    #         - at least 1 ESG rating ('esg_data' = True)
+    #         - no ESG rating ('esg_data' = False).
+    #         - credit rating (credit_rating = True, otherwise False)
+    #     """
+    #     # get list of companies
+    #     company_list = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'),
+    #                                  sheet_name='company_info')
+    #     company_list = company_list[['Fundamental Ticker Equity']]
+    #
+    #     # get sustainalytics esg rating availability
+    #     sustainalytics_short = company_list.merge(
+    #         cleaned_data_dict['sustainalytics'][['Fundamental Ticker Equity', 'sustainalytics_rating']],
+    #         on='Fundamental Ticker Equity',
+    #         how='left'
+    #     )
+    #     sustainalytics_short = sustainalytics_short.drop_duplicates(keep='first').reset_index(drop=True)
+    #
+    #     # get robecosam esg rating availability
+    #     robecosam_short = company_list.merge(
+    #         cleaned_data_dict['robecosam'][['Fundamental Ticker Equity', 'robecosam_rating']],
+    #         on='Fundamental Ticker Equity',
+    #         how='left'
+    #     )
+    #     robecosam_short = robecosam_short.drop_duplicates(keep='first').reset_index(drop=True)
+    #
+    #     # get refinitiv esg rating availability
+    #     refinitiv_short = company_list.merge(
+    #         cleaned_data_dict['refinitiv'][['Fundamental Ticker Equity', 'refinitiv_rating']],
+    #         on='Fundamental Ticker Equity',
+    #         how='left'
+    #     )
+    #     refinitiv_short = refinitiv_short.drop_duplicates(keep='first').reset_index(drop=True)
+    #
+    #     # get S&P credit rating availability
+    #     sp_short = company_list.merge(
+    #         cleaned_data_dict['sp'][['Fundamental Ticker Equity', 'sp_rating']],
+    #         on='Fundamental Ticker Equity',
+    #         how='left'
+    #     )
+    #     sp_short = sp_short.drop_duplicates(keep='first').reset_index(drop=True)
+    #
+    #     # merge all data
+    #     result = sustainalytics_short.merge(robecosam_short, how='outer', on='Fundamental Ticker Equity')
+    #     result = result.merge(refinitiv_short, how='outer', on='Fundamental Ticker Equity')
+    #     result = result.merge(sp_short, how='outer', on='Fundamental Ticker Equity')
+    #
+    #     result.loc[
+    #         (result['refinitiv_rating'].isnull()) &
+    #         (result['robecosam_rating'].isnull()) &
+    #         (result['sustainalytics_rating'].isnull()),
+    #         'esg_data'
+    #     ] = False
+    #
+    #     result.loc[
+    #         (result['refinitiv_rating'].notnull()) |
+    #         (result['robecosam_rating'].notnull()) |
+    #         (result['sustainalytics_rating'].notnull()),
+    #         'esg_data'
+    #     ] = True
+    #
+    #     # check whether companies can be used to analyzed
+    #     # 'analyze' = True if 'sp_rating' = True
+    #     # 'analyze' = False if 'sp_rating' = False
+    #     result.loc[result['sp_rating'].isnull(), 'analyze'] = False
+    #     result.loc[result['sp_rating'].notnull(), 'analyze'] = True
+    #
+    #     return result
 
-        result.loc[
-            (result['refinitiv_rating'].isnull()) &
-            (result['robecosam_rating'].isnull()) &
-            (result['sustainalytics_rating'].isnull()),
-            'esg_data'
-        ] = False
-
-        result.loc[
-            (result['refinitiv_rating'].notnull()) |
-            (result['robecosam_rating'].notnull()) |
-            (result['sustainalytics_rating'].notnull()),
-            'esg_data'
-        ] = True
-
-        # check whether companies can be used to analyzed
-        # 'analyze' = True if 'sp_rating' = True
-        # 'analyze' = False if 'sp_rating' = False
-        result.loc[result['sp_rating'].isnull(), 'analyze'] = False
-        result.loc[result['sp_rating'].notnull(), 'analyze'] = True
-
-        return result
-
-    def check_time_range(self, cleaned_data_dict):
-        """
-        Return first and last available date of each company for each type of variable.
-        """
-        data_timerange = self.company_info[['Fundamental Ticker Equity']]
-
-        # extract time range of sustainalytics rating
-        for company in cleaned_data_dict['sustainalytics']['Fundamental Ticker Equity'].unique():
-            temp = cleaned_data_dict['sustainalytics'].loc[cleaned_data_dict['sustainalytics']['Fundamental Ticker Equity'] == company]
-            temp = temp.sort_values(by='Dates')
-            data_timerange.loc[
-                data_timerange['Fundamental Ticker Equity'] == company,
-                'first_sustainalytics_date'
-            ] = list(temp['Dates'])[0]
-            data_timerange.loc[
-                data_timerange['Fundamental Ticker Equity'] == company,
-                'last_sustainalytics_date'
-            ] = list(temp['Dates'])[-1]
-
-        # extract time range of robecosam rating
-        for company in cleaned_data_dict['robecosam']['Fundamental Ticker Equity'].unique():
-            temp = cleaned_data_dict['robecosam'].loc[cleaned_data_dict['robecosam']['Fundamental Ticker Equity'] == company]
-            temp = temp.sort_values(by='Dates')
-            data_timerange.loc[
-                data_timerange['Fundamental Ticker Equity'] == company,
-                'first_robecosam_date'
-            ] = list(temp['Dates'])[0]
-            data_timerange.loc[
-                data_timerange['Fundamental Ticker Equity'] == company,
-                'last_robecosam_date'
-            ] = list(temp['Dates'])[-1]
-
-        # extract time range of refinitiv rating
-        for company in cleaned_data_dict['refinitiv']['Fundamental Ticker Equity'].unique():
-            temp = cleaned_data_dict['refinitiv'].loc[cleaned_data_dict['refinitiv']['Fundamental Ticker Equity'] == company]
-            temp = temp.sort_values(by='Dates')
-            data_timerange.loc[
-                data_timerange['Fundamental Ticker Equity'] == company,
-                'first_refinitiv_date'
-            ] = list(temp['Dates'])[0]
-            data_timerange.loc[
-                data_timerange['Fundamental Ticker Equity'] == company,
-                'last_refinitiv_date'
-            ] = list(temp['Dates'])[-1]
-
-        # extract time range of credit rating
-        for company in cleaned_data_dict['sp']['Fundamental Ticker Equity'].unique():
-            temp = cleaned_data_dict['sp'].loc[cleaned_data_dict['sp']['Fundamental Ticker Equity'] == company]
-            temp = temp.sort_values(by='rating_date')
-            data_timerange.loc[
-                data_timerange['Fundamental Ticker Equity'] == company,
-                'first_credit_rtg_date'
-            ] = list(temp['rating_date'])[0]
-
-        # extract time range of accounting data
-        for company in cleaned_data_dict['accounting']['company_name'].unique():
-            temp = cleaned_data_dict['accounting'].loc[cleaned_data_dict['accounting']['company_name'] == company]
-            temp = temp.sort_values(by='Dates')
-            data_timerange.loc[
-                data_timerange['Fundamental Ticker Equity'] == company,
-                'first_accounting_date'
-            ] = list(temp['Dates'])[0]
-            data_timerange.loc[
-                data_timerange['Fundamental Ticker Equity'] == company,
-                'last_accounting_date'
-            ] = list(temp['Dates'])[-1]
-
-        # convert columns from datetime to date
-        data_timerange.iloc[:, 1:] = data_timerange.iloc[:, 1:].apply(lambda x: x.dt.date)
-
-        return data_timerange
 
     @staticmethod
     def h1_availability(cleaned_data_dict):
@@ -299,122 +326,6 @@ class AnalyseData(BaseClass):
 
 
 class Helper:
-
-    @staticmethod
-    def check_availability_esg_data():
-        project_root = os.path.dirname(os.path.dirname(__file__))
-        data_root = os.path.join(project_root, 'data', 'uyen\'s data')
-
-        data = pd.read_excel(os.path.join(data_root, 'cleaned_data.xlsx'), sheet_name='esg_data_bb')
-        len(data.companyname.unique())
-
-        # get companies with SUSTAINALYTICS' data
-        sustainalytics = data.loc[data['SUSTAINALYTICS_RANK'].notnull()]
-        len(sustainalytics.companyname.unique())
-
-        # get company with RobecoSAM data
-        robecosam = data.loc[data['ROBECOSAM_TOTAL_STBLY_RANK'].notnull()]
-        len(robecosam.companyname.unique())
-
-        company_list = pd.read_excel(os.path.join(data_root, 'company_list_final.xlsx'),
-                                     sheet_name='general_data_info')
-        company_list_simple = company_list[['companyname',
-                                            'bloomberg_fundamental_ticker',
-                                            'esg_sustainalytics',
-                                            'esg_robecosam']]
-
-        for company in sustainalytics['companyname'].unique():
-            temp = sustainalytics.loc[sustainalytics['companyname'] == company]
-            temp = temp.sort_values(by='Dates')
-            company_list_simple.loc[
-                company_list_simple['bloomberg_fundamental_ticker'] == company,
-                'first_esg_sustainalytics_date'
-            ] = list(temp['Dates'])[0]
-            company_list_simple.loc[
-                company_list_simple['bloomberg_fundamental_ticker'] == company,
-                'last_esg_sustainalytics_date'
-            ] = list(temp['Dates'])[-1]
-
-        for company in robecosam['companyname'].unique():
-            temp = robecosam.loc[robecosam['companyname'] == company]
-            temp = temp.sort_values(by='Dates')
-            company_list_simple.loc[
-                company_list_simple['bloomberg_fundamental_ticker'] == company,
-                'first_esg_robecosam_date'
-            ] = list(temp['Dates'])[0]
-            company_list_simple.loc[
-                company_list_simple['bloomberg_fundamental_ticker'] == company,
-                'last_esg_robecosam_date'
-            ] = list(temp['Dates'])[-1]
-
-        company_list = company_list.merge(
-            company_list_simple[['bloomberg_fundamental_ticker',
-                                 'first_esg_sustainalytics_date',
-                                 'last_esg_sustainalytics_date',
-                                 'first_esg_robecosam_date',
-                                 'last_esg_robecosam_date',
-                                 ]],
-            on='bloomberg_fundamental_ticker',
-            how='outer'
-        )
-
-        company_list['first_credit_rating_date'] = pd.to_datetime(company_list['first_credit_rating_date'])
-        company_list['last_credit_rating_date'] = pd.to_datetime(company_list['last_credit_rating_date'])
-        company_list['first_esg_sustainalytics_date'] = pd.to_datetime(company_list['first_esg_sustainalytics_date'])
-        company_list['last_esg_sustainalytics_date'] = pd.to_datetime(company_list['last_esg_sustainalytics_date'])
-        company_list['first_esg_robecosam_date'] = pd.to_datetime(company_list['first_esg_robecosam_date'])
-        company_list['last_esg_robecosam_date'] = pd.to_datetime(company_list['last_esg_robecosam_date'])
-
-        company_list['first_credit_rating_date'] = company_list['first_credit_rating_date'].dt.date
-        company_list['last_credit_rating_date'] = company_list['last_credit_rating_date'].dt.date
-        company_list['first_esg_sustainalytics_date'] = company_list['first_esg_sustainalytics_date'].dt.date
-        company_list['last_esg_sustainalytics_date'] = company_list['last_esg_sustainalytics_date'].dt.date
-        company_list['first_esg_robecosam_date'] = company_list['first_esg_robecosam_date'].dt.date
-        company_list['last_esg_robecosam_date'] = company_list['last_esg_robecosam_date'].dt.date
-
-        with pd.ExcelWriter('company_list' + '.xlsx') as writer:
-            company_list.to_excel(writer, sheet_name='company_downloaded', index=False)
-
-    @staticmethod
-    def check_availability_accounting_data_bb():
-        project_root = os.path.dirname(os.path.dirname(__file__))
-        data_root = os.path.join(project_root, 'data', 'uyen\'s data')
-
-        # get accounting data
-        data = pd.read_excel(os.path.join(data_root, 'cleaned_data.xlsx'),
-                             sheet_name='accounting_data_bb')
-        data = data[['companyname', 'Dates', 'CUR_MKT_CAP']]
-
-        # get company list
-        company_list = pd.read_excel(os.path.join(data_root, 'company_list_final.xlsx'),
-                                     sheet_name='general_data_info')
-        company_list_simple = company_list[['companyname',
-                                            'bloomberg_fundamental_ticker']]
-
-        # merge data
-        for company in data['companyname'].unique():
-            temp = data.loc[data['companyname'] == company]
-            temp = temp.sort_values(by='Dates')
-            company_list_simple.loc[
-                company_list_simple['bloomberg_fundamental_ticker'] == company,
-                'first_accounting_data_date'
-            ] = list(temp['Dates'])[0]
-            company_list_simple.loc[
-                company_list_simple['bloomberg_fundamental_ticker'] == company,
-                'last_accounting_data_date'
-            ] = list(temp['Dates'])[-1]
-
-        company_list = company_list.merge(
-            company_list_simple[['bloomberg_fundamental_ticker',
-                                 'first_accounting_data_date',
-                                 'last_accounting_data_date']],
-            on='bloomberg_fundamental_ticker',
-            how='outer'
-        )
-
-        # export data
-        with pd.ExcelWriter('company_list' + '.xlsx') as writer:
-            company_list.to_excel(writer, sheet_name='company_downloaded', index=False)
 
     @staticmethod
     def check_availability_to_analyse():
