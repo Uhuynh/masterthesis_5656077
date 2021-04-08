@@ -2,9 +2,7 @@ import os
 import pandas as pd
 
 from lib.clean_data import CleanBase
-
-
-# ToDo make a class of variable names
+from lib.variable_names import Variables
 
 
 class AnalyseData(CleanBase):
@@ -22,44 +20,6 @@ class AnalyseData(CleanBase):
         # esg_availability = self.check_data_availability(cleaned_data_dict)
         self.check_time_range(cleaned_data_dict)
 
-    def extract_cleaned_data(self):
-        """
-        Return a dictionary contains (cleaned) ESG ratings, credit ratings of each provider and accounting data.
-            - Sustainalytics: ESG rating
-            - RobecoSAM (S&P Global): ESG rating
-            - Refinitiv: ESG rating
-            - S&P: credit rating
-            - control_var: control variables
-        """
-        esg_bb = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'), sheet_name='ESG_BLOOMBERG')
-        esg_bb = esg_bb.rename(columns={'company_name': 'Fundamental Ticker Equity'})
-
-        # get companies with Sustainalytics ESG ratings
-        sustainalytics = esg_bb.loc[esg_bb['SUSTAINALYTICS_RANK'].notnull()]
-
-        # get companies with RobecoSAM ESG ratings
-        robecosam = esg_bb.loc[esg_bb['ROBECOSAM_TOTAL_STBLY_RANK'].notnull()]
-
-        # get companies with Refinitiv ESG ratings
-        refinitiv = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'), sheet_name='ESG_REFINITIV')
-
-        # get companies with S&P credit rating
-        sp = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'), sheet_name='SP_credit_rating')
-
-        # get companies with populated S&P credit rating
-        populated_sp = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'),
-                                     sheet_name='populated_SP_credit_rating')
-
-        # get accounting data of companies
-        control_var = pd.read_excel(os.path.join(self.cleaned_data_root, 'cleaned_data.xlsx'),
-                                    sheet_name='control_var')
-
-        return {'robecosam': robecosam,
-                'sustainalytics': sustainalytics,
-                'refinitiv': refinitiv,
-                'sp': sp,
-                'populated_sp': populated_sp,
-                'control_var': control_var}
 
     def check_time_range(self, cleaned_data_dict):
         """
@@ -120,7 +80,8 @@ class AnalyseData(CleanBase):
 
         # extract time range of control variables
         for company in cleaned_data_dict['control_var']['Fundamental Ticker Equity'].unique():
-            temp = cleaned_data_dict['control_var'].loc[cleaned_data_dict['control_var']['Fundamental Ticker Equity'] == company]
+            temp = cleaned_data_dict['control_var'].loc[
+                cleaned_data_dict['control_var']['Fundamental Ticker Equity'] == company]
             temp = temp.sort_values(by='Dates')
             data_timerange.loc[
                 data_timerange['Fundamental Ticker Equity'] == company,

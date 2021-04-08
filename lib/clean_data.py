@@ -4,9 +4,10 @@ import pandas as pd
 import numpy as np
 
 from lib.variable_names import Variables
+from lib.helpers import DataRoot, SmallFunction
 
 
-class CleanBase:
+class CleanBase(DataRoot):
     """
     This class provides an overview of standard ETL procedure for cleaning the raw data:
         1. Extract raw data downloaded from Bloomberg/Refinitiv in Excel
@@ -15,15 +16,7 @@ class CleanBase:
     """
 
     def __init__(self):
-
-        # data path
-        self.project_root = os.path.dirname(os.path.dirname(__file__))
-        self.raw_data_root = os.path.join(self.project_root, 'data', 'raw_data')
-        self.cleaned_data_root = os.path.join(self.project_root, 'data', 'cleaned_data')
-
-        # overall company info (from Bloomberg)
-        self.company_info = pd.read_excel(os.path.join(self.raw_data_root, Variables.Bloomberg.FILE_NAME),
-                                          sheet_name=Variables.Bloomberg.COMPANY_INFO_SHEET_NAME)
+        super().__init__()
 
     def extract_data(self, file_name: str, sheet_name: str):
         return pd.read_excel(os.path.join(self.raw_data_root, file_name), sheet_name=sheet_name)
@@ -35,29 +28,6 @@ class CleanBase:
     def load_data(data, file_name: str, sheet_name: str):
         with pd.ExcelWriter(file_name) as writer:
             data.to_excel(writer, sheet_name=sheet_name, index=False)
-
-
-class Helper:
-    """
-    Provides small functions that can be used to clean data.
-    """
-
-    @staticmethod
-    def generate_series(start_dt: date, end_dt: date):
-        """
-        Generates a dataframe having continuous lists of month and year from start_dt to end_dt.
-        """
-        if not isinstance(start_dt, date) or not isinstance(end_dt, date):
-            raise TypeError
-
-        series = pd.date_range(start=start_dt, end=end_dt, freq='1M').to_frame()
-        series['month'] = series[0].dt.month
-        series['year'] = series[0].dt.year
-        series = series[['month', 'year']].reset_index(drop=True)
-
-        return series
-
-
 
 
 class BloombergESG(CleanBase):
@@ -82,10 +52,9 @@ class BloombergESG(CleanBase):
 
         data = data.rename(columns=data.iloc[2])  # rename columns to BB_Tickers
 
-        data = data.iloc[4:, :]  # remove redundant headers
+        data = data.iloc[4:, :].reset_index(drop=True)  # remove redundant headers
 
         # reset index to 'Dates'
-        data = data.reset_index(drop=True)
         data = data.rename(columns={data.columns[0]: 'Dates'})
         data = data.set_index('Dates')
 
@@ -176,8 +145,11 @@ class RefinitivESG(CleanBase):
         )
         data_t = data_t.reset_index()
 
-        # extract month and year from reported date
+        # shift Dates to 1 day backward to get end-of-month rating
         data_t['Dates'] = pd.to_datetime(data_t['Dates'])
+        data_t['Dates'] = data_t['Dates'] - pd.Timedelta('1 day')
+
+        # extract month and year from reported date
         data_t['month'] = data_t['Dates'].dt.month
         data_t['year'] = data_t['Dates'].dt.year
         data_t['Dates'] = data_t['Dates'].dt.date
@@ -189,9 +161,6 @@ class RefinitivESG(CleanBase):
         # merge with 'company_info.xlsx' to get BB_TICKER
         data_t = data_t.merge(self.company_info[[Variables.Bloomberg.BB_TICKER, 'ID_ISIN']], on='ID_ISIN', how='outer')
         data_t = data_t.loc[data_t['Dates'].notnull()]
-
-        # shift Dates to 1 day backward to get end-of-month rating
-        data_t['Dates'] = data_t['Dates'] - pd.Timedelta('1 day')
 
         # exclude data before 2006
         data_t = data_t.loc[data_t['Dates'] > date(2005, 12, 31)].reset_index(drop=True)
@@ -312,7 +281,7 @@ class BloombergCreditRtg(CleanBase):
         data['month'] = data['rating_date'].dt.month
         data['year'] = data['rating_date'].dt.year
 
-        series = Helper.generate_series(start_dt=date(2006, 1, 1), end_dt=date(2020, 12, 31))
+        series = SmallFunction.generate_series(start_dt=date(2006, 1, 1), end_dt=date(2020, 12, 31))
 
         ########################
         # populate credit rating
@@ -342,71 +311,27 @@ class BloombergCreditRtg(CleanBase):
         return populated_rtg
 
 
-class BloombergAccounting(CleanBase):
+class BloombergAccounting(BloombergESG):
 
     def __init__(self):
         super().__init__()
 
     def control(self):
-        """
-        ETL Process
-        """
-        accounting_data = self.extract_data(file_name='raw_data_bloomberg_march.xlsx', sheet_name='accounting yearly')
+        data = self.extract_data(file_name=Variables.Bloomberg.FILE_NAME,
+                                 sheet_name=Variables.Bloomberg.ACCOUNTING_SHEET_NAME)
+        data_t = self.transform_data(data)
+        self.load_data(transformed_data=data_t, file_name=Variables.CleanedData.FILE_NAME,
+                       sheet_name=Variables.CleanedData.ACCOUNTING_SHEET_NAME)
 
-        transformed_data = self.transform_data(accounting_data)
-        self.load_data(transformed_data=transformed_data,
-                       file_name='cleaned_data.xlsx',
-                       sheet_name='accounting_data')
+        data = self.calculate_control_var(data_t)
+        populated_data = self.populate(data)
+        self.load_data(transformed_data=data_t, file_name=Variables.CleanedData.FILE_NAME,
+                       sheet_name=Variables.CleanedData.ACCOUNTING_SHEET_NAME)
 
-        data = self.calculate_control_var(transformed_data)
-        result = self.clean(data)
-        self.load_data(transformed_data=result,
-                       file_name='cleaned_data.xlsx',
-                       sheet_name='control_var')
-
-    def transform_data(self, accounting_data):
-        """
-        Transform accounting data from wide to long format.
-        """
-
-        # fill fundamental ticker to missing places
-        accounting_data.iloc[2, :] = accounting_data.iloc[2, :].fillna(method='ffill', axis=0)
-
-        # rename columns
-        accounting_data = accounting_data.rename(columns=accounting_data.iloc[2])
-
-        # remove redundant headers
-        accounting_data = accounting_data.iloc[4:, :]
-        accounting_data = accounting_data.reset_index(drop=True)
-
-        # reset index
-        accounting_data = accounting_data.rename(columns={accounting_data.columns[0]: 'Dates'})
-        accounting_data = accounting_data.set_index('Dates')
-
-        # reshape data (also drop NA values)
-        temp = accounting_data.T
-        temp = temp.set_index(['Dates'], append=True)
-        temp = temp.reset_index()
-        temp = temp.rename(columns={temp.columns[0]: 'company_name', temp.columns[1]: 'variable'})
-
-        data = temp.melt(id_vars=['company_name', 'variable'], var_name='Dates')
-        data = pd.pivot_table(
-            data,
-            values='value',
-            index=['company_name', 'Dates'],
-            columns=['variable'],
-            aggfunc='first'
-        )
-        data = data.reset_index()
-        data = data.rename(columns={data.columns[0]: 'company_name', data.columns[1]: 'Dates'})
-        data['Dates'] = pd.to_datetime(data['Dates'])
-        data['Dates'] = data['Dates'].dt.date
-
-        # sort values
-        data = data.sort_values(['company_name', 'Dates'], ascending=True)
-        data = data.rename(columns={'company_name': 'Fundamental Ticker Equity'})
-
-        return data
+        # result = self.clean(data)
+        # self.load_data(transformed_data=result,
+        #                file_name='cleaned_data.xlsx',
+        #                sheet_name='control_var')
 
     @staticmethod
     def calculate_control_var(data):
@@ -423,22 +348,54 @@ class BloombergAccounting(CleanBase):
         return data
 
     @staticmethod
-    def clean(transformed_data):
+    def populate(data):
         """
-        Exclude companies that do not have enough control variables
+        Populate accounting data to monthly data from 2006 - 2020.
         """
-        data = transformed_data[['SIZE',
-                                 'LEVERAGE',
-                                 'ROA',
-                                 'OPER_MARGIN',
-                                 'INTEREST_COVERAGE_RATIO',
-                                 'Fundamental Ticker Equity',
-                                 'Dates']]
+        series = SmallFunction.generate_series(start_dt=date(2006, 1, 1), end_dt=date(2020, 12, 31))
+        data = data[[
+            Variables.Bloomberg.BB_TICKER,
+            'month',
+            'year',
+            Variables.ControlVar.ROA,
+            Variables.ControlVar.LVG,
+            Variables.ControlVar.SIZE,
+            Variables.ControlVar.INT_COV,
+            Variables.ControlVar.O_MARGIN,
+        ]]
+        populated = []
+        for company in data[Variables.Bloomberg.BB_TICKER].unique():
+            df = data.loc[data[Variables.Bloomberg.BB_TICKER] == company]
+            min_year = min(df['year'])
+            max_year = max(df['year'])
+            df = series.merge(df, on=['month', 'year'], how='left')
+            df = df.fillna(method='bfill')  # use next valid observation to fill gap
+            df = df.loc[(df['year'] >= min_year) & (df['year'] <= max_year)]
+            populated.append(df)
+        populated = pd.concat(populated)
 
-        # drop row that has NA values
-        data = data.dropna(axis=0, how='any')
+        # drop row having NA values
+        populated = populated.dropna(axis=0, how='any')
 
-        return data
+        return populated
+
+    # @staticmethod
+    # def clean(data_t):
+    #     """
+    #     Exclude companies that do not have enough control variables
+    #     """
+    #     data = data_t[['SIZE',
+    #                    'LEVERAGE',
+    #                    'ROA',
+    #                    'OPER_MARGIN',
+    #                    'INTEREST_COVERAGE_RATIO',
+    #                    'Fundamental Ticker Equity',
+    #                    'Dates']]
+    #
+    #     # drop row that has NA values
+    #     data = data.dropna(axis=0, how='any')
+    #
+    #     return data
 
 
 
@@ -446,6 +403,6 @@ class BloombergAccounting(CleanBase):
 if __name__ == "__main__":
     # BloombergESG().control()
     # RefinitivESG().control()
-    BloombergCreditRtg().control()
-    # AccountingData().control()
+    # BloombergCreditRtg().control()
+    # BloombergAccounting().control()
     pass

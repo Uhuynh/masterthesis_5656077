@@ -10,8 +10,8 @@ class Variables:
         ESG_SHEET_NAME = 'esg'
         COMPANY_INFO_SHEET_NAME = 'company_info'
         SP_RATING_CHANGES_SHEET_NAME = 'sp_rating_changes'
+        ACCOUNTING_SHEET_NAME = 'accounting'
         BB_TICKER = 'BB_TICKER'
-
 
 
     class Refinitiv:
@@ -55,6 +55,15 @@ class Variables:
         LT_FOREIGN_ISSUER = 'LT Foreign Issuer Credit'
 
 
+    class ControlVar:
+
+        SIZE = 'SIZE'
+        LVG = 'LEVERAGE'
+        INT_COV = 'INTEREST_COVERAGE_RATIO'
+        O_MARGIN = 'OPER_MARGIN'
+        ROA = 'ROA'
+
+
     class CleanedData:
 
         FILE_NAME = 'cleaned_data.xlsx'
@@ -62,3 +71,13 @@ class Variables:
         REFINITIV_ESG_SHEET_NAME = 'esg_refinitiv'
         SP_CREDIT_RTG_SHEET_NAME = 'sp_credit_rtg'
         POPULATED_SP_CREDIT_RTG_SHEET_NAME = 'populated_sp_credit_rtg'
+        ACCOUNTING_SHEET_NAME = 'accounting'
+        POPULATED_ACCOUNTING_SHEET_NAME = 'populated_accounting'
+
+
+    class RegressionData:
+
+        FILE_NAME = 'regression_data.xlsx'
+        H1_SUSTAINALYTICS_SHEET_NAME = 'h1_sustainalytics'
+        H1_REFINITIV_SHEET_NAME = 'h1_refinitiv'
+        H1_SPGLOBAL_SHEET_NAME = 'h1_spglobal'

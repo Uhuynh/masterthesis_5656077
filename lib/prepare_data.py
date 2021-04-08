@@ -1,78 +1,102 @@
-import os
 import pandas as pd
 from datetime import date
 
-from lib.clean_data import CleanBase
-from lib.analyse_data import AnalyseData
+from lib.helpers import ExtractData, SmallFunction
+from lib.variable_names import Variables
 
 
-class PrepareData(CleanBase):
+class PrepareData:
     """
     Prepare data for getting descriptive statistics and running regression
     """
 
     def __init__(self):
         super().__init__()
-        self.cleaned_data_dict = AnalyseData().extract_cleaned_data()
-        self.timerange = self.generate_timerange()
+        self.cleaned_data_dict = ExtractData().extract_cleaned_data()
+        self.timerange = SmallFunction.generate_series(start_dt=date(2006, 1, 1), end_dt=date(2020, 12, 31))
 
     def control(self):
         pass
 
-    @staticmethod
-    def generate_timerange():
-        """
-        Returns a dataframe with month and year from 2006 to 2020
-        """
-        daterange = pd.date_range(start=date(2006, 1, 1), end=date(2020, 12, 31), freq='1M').to_frame()
-        daterange['month'] = daterange[0].dt.month
-        daterange['year'] = daterange[0].dt.year
-        daterange = daterange[['month', 'year']].reset_index(drop=True)
-
-        return daterange
-
     def h1_refinitiv(self):
         """
         Retrieve all data necessary to run hypothesis 1 for Refinitiv ESG scores
-        Null values is excluded.
+        All NA values and where ordinal credit rating = 0 (NR) are excluded.
         """
         refinitiv = self.cleaned_data_dict['refinitiv']
-        refinitiv['month'] = refinitiv['Dates'].dt.month
-        refinitiv['year'] = refinitiv['Dates'].dt.year
         refinitiv = refinitiv.drop(columns=['ID_ISIN', 'Dates'])
 
         data = []
-        for company in refinitiv['Fundamental Ticker Equity'].unique():
-            df = refinitiv.loc[refinitiv['Fundamental Ticker Equity'] == company]
+        for company in refinitiv[Variables.Bloomberg.BB_TICKER].unique():
+            df = refinitiv.loc[refinitiv[Variables.Bloomberg.BB_TICKER] == company]
             df = self.timerange.merge(df, on=['month', 'year'], how='left')
             data.append(df)
         data = pd.concat(data)
 
-
-        populated_sp = self.cleaned_data_dict['populated_sp']
-        populated_sp = populated_sp.rename(columns={'rating_month': 'month', 'rating_year': 'year'})
-        data = data.merge(populated_sp, on=['month', 'year', 'Fundamental Ticker Equity'], how='left')
-
-        control_var = self.cleaned_data_dict['control_var']
-
-        control_var['month'] = control_var['Dates'].dt.month
-        control_var['year'] = control_var['Dates'].dt.year
-        control_var = control_var.drop(columns=['Dates'])
-
-        populated_control_var = []
-        for company in control_var['Fundamental Ticker Equity'].unique():
-            df = control_var.loc[control_var['Fundamental Ticker Equity'] == company]
-            df = self.timerange.merge(df, on=['month', 'year'], how='left')
-            df = df.fillna(method='bfill')  # use next valid observation to fill gap.
-            populated_control_var.append(df)
-        populated_control_var = pd.concat(populated_control_var)
-        populated_control_var = populated_control_var.dropna(how='any')
-
-        data = data.merge(populated_control_var, on=['month', 'year', 'Fundamental Ticker Equity'], how='left')
-
+        data = data.merge(self.cleaned_data_dict['populated_sp'], on=['month', 'year', Variables.Bloomberg.BB_TICKER], how='left')
+        data = data.merge(self.cleaned_data_dict['control_var'], on=['month', 'year', Variables.Bloomberg.BB_TICKER], how='left')
         data = data.dropna(how='any')
+        data = data.loc[data['ordinal_rating'] != 0]
+
+        return data
+
+    def h1_sustainalytics(self):
+        """
+        Retrieve all data necessary to run hypothesis 1 for Sustainalytics ESG scores
+        All NA values and where ordinal credit rating = 0 (NR) are excluded.
+        """
+        sustainalytics = self.cleaned_data_dict['sustainalytics']
+        sustainalytics = sustainalytics.drop(columns=[
+            'Dates',
+            Variables.SPGlobalESG.ENV,
+            Variables.SPGlobalESG.ECON,
+            Variables.SPGlobalESG.SOCIAL,
+            Variables.SPGlobalESG.TOTAL,
+        ])
+
+        data = []
+        for company in sustainalytics[Variables.Bloomberg.BB_TICKER].unique():
+            df = sustainalytics.loc[sustainalytics[Variables.Bloomberg.BB_TICKER] == company]
+            df = self.timerange.merge(df, on=['month', 'year'], how='left')
+            data.append(df)
+        data = pd.concat(data)
+
+        data = data.merge(self.cleaned_data_dict['populated_sp'], on=['month', 'year', Variables.Bloomberg.BB_TICKER], how='left')
+        data = data.merge(self.cleaned_data_dict['control_var'], on=['month', 'year', Variables.Bloomberg.BB_TICKER], how='left')
+        data = data.dropna(how='any')
+        data = data.loc[data['ordinal_rating'] != 0]
+
+        return data
+
+    def h1_spglobal(self):
+        """
+        Retrieve all data necessary to run hypothesis 1 for S&P Global ESG scores
+        All NA values and where ordinal credit rating = 0 (NR) are excluded.
+        """
+        spglobal = self.cleaned_data_dict['robecosam']
+        spglobal = spglobal.drop(columns=[
+            'Dates',
+            Variables.SustainalyticsESG.ENV,
+            Variables.SustainalyticsESG.SOCIAL,
+            Variables.SustainalyticsESG.GOV,
+            Variables.SustainalyticsESG.TOTAL,
+        ])
+
+        data = []
+        for company in spglobal[Variables.Bloomberg.BB_TICKER].unique():
+            df = spglobal.loc[spglobal[Variables.Bloomberg.BB_TICKER] == company]
+            df = self.timerange.merge(df, on=['month', 'year'], how='left')
+            data.append(df)
+        data = pd.concat(data)
+
+        data = data.merge(self.cleaned_data_dict['populated_sp'], on=['month', 'year', Variables.Bloomberg.BB_TICKER], how='left')
+        data = data.merge(self.cleaned_data_dict['control_var'], on=['month', 'year', Variables.Bloomberg.BB_TICKER], how='left')
+        data = data.dropna(how='any')
+        data = data.loc[data['ordinal_rating'] != 0]
 
         return data
 
 
-# PrepareData().h1_refinitiv()
+if __name__ == "__main__":
+    PrepareData().control()
+    pass
