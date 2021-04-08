@@ -16,7 +16,6 @@ class DataRoot:
     """
 
     def __init__(self):
-        # data path
         self.project_root = os.path.dirname(os.path.dirname(__file__))
         self.raw_data_root = os.path.join(self.project_root, 'data', 'raw_data')
         self.cleaned_data_root = os.path.join(self.project_root, 'data', 'cleaned_data')
@@ -89,3 +88,23 @@ class ExtractData(DataRoot):
                 'refinitiv': refinitiv,
                 'populated_sp': populated_sp,
                 'control_var': control_var}
+
+    def extract_regression_data(self):
+        """
+        Returns a dictionary contain regression data for each hypothesis,
+        separated by each ESG rating providers.
+        """
+        h1_refinitiv = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.FILE_NAME),
+                                     sheet_name=Variables.RegressionData.H1_REFINITIV_SHEET_NAME)
+
+        h1_spglobal = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.FILE_NAME),
+                                    sheet_name=Variables.RegressionData.H1_SPGLOBAL_SHEET_NAME)
+
+        h1_sustainalytics = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.FILE_NAME),
+                                          sheet_name=Variables.RegressionData.H1_SUSTAINALYTICS_SHEET_NAME)
+
+        return {
+            'h1_refinitiv': h1_refinitiv,
+            'h1_spglobal': h1_spglobal,
+            'h1_sustainalytics': h1_sustainalytics
+        }

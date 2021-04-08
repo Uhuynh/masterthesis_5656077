@@ -1,25 +1,52 @@
 import os
 import pandas as pd
 
-from lib.clean_data import CleanBase
 from lib.variable_names import Variables
+from lib.helpers import ExtractData
 
 
-class AnalyseData(CleanBase):
+class AnalyseData:
 
     def __init__(self):
-        super().__init__()
+        self.regression_data_dict = ExtractData().extract_regression_data()
 
     def control(self):
-        cleaned_data_dict = self.extract_cleaned_data()
+        pass
+        # credit_rating_summary = self.count_data(cleaned_data_dict)
+        # corr_matrix_esg = self.corr_matrix(cleaned_data_dict)
+        # refinitiv_statistics = self.descriptive_statistics(cleaned_data_dict, provider='refinitiv')
+        #
+        # # esg_availability = self.check_data_availability(cleaned_data_dict)
+        # self.check_time_range(cleaned_data_dict)
 
-        credit_rating_summary = self.count_data(cleaned_data_dict)
-        corr_matrix_esg = self.corr_matrix(cleaned_data_dict)
-        refinitiv_statistics = self.descriptive_statistics(cleaned_data_dict, provider='refinitiv')
+    def descriptive_stat(self):
+        """
+        Returns a dataframe of descriptive statistics for regression data,
+        separated by ESG rating provider.
+        """
+        result = pd.DataFrame()
+        for key in self.regression_data_dict.keys():
+            stat = self.regression_data_dict[key].describe().T
+            stat['skewness'] = self.regression_data_dict[key].skew(axis=0)
+            stat['kurtosis'] = self.regression_data_dict[key].kurtosis(axis=0)
+            stat['hypothesis'] = key
+            result = result.append(stat, ignore_index=False)
+        result = result.reset_index()
 
-        # esg_availability = self.check_data_availability(cleaned_data_dict)
-        self.check_time_range(cleaned_data_dict)
+        return result
 
+    def corr_matrix(self):
+        """
+        Generate correlation matrix for regression data,
+        separated by ESG rating providers.
+        """
+        h1_refinitiv_corr = self.regression_data_dict['h1_refinitiv'].drop(columns=['month', 'year']).corr(method='pearson')
+        h1_spglobal_corr = self.regression_data_dict['h1_spglobal'].drop(columns=['month', 'year']).corr(method='pearson')
+        h1_sustainalytics_corr = self.regression_data_dict['h1_sustainalytics'].drop(columns=['month', 'year']).corr(method='pearson')
+
+        return {'h1_refinitiv_corr': h1_refinitiv_corr,
+                'h1_spglobal_corr': h1_spglobal_corr,
+                'h1_sustainalytics_corr': h1_sustainalytics_corr}
 
     def check_time_range(self, cleaned_data_dict):
         """
@@ -278,4 +305,8 @@ class AnalyseData(CleanBase):
     #     return result
 
 
-# AnalyseData().control()
+
+
+if __name__ == "__main__":
+    AnalyseData().control()
+    pass

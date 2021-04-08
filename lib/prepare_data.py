@@ -98,5 +98,5 @@ class PrepareData:
 
 
 if __name__ == "__main__":
-    PrepareData().control()
+    # PrepareData().control()
     pass
