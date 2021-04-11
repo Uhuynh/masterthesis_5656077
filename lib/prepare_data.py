@@ -1,5 +1,6 @@
 import pandas as pd
 from datetime import date
+import numpy as np
 
 from lib.helpers import ExtractData, SmallFunction
 from lib.variable_names import Variables
@@ -38,6 +39,36 @@ class PrepareData:
         data = data.dropna(how='any')
         data = data.loc[data['ordinal_rating'] != 0]
 
+
+
+        from pandas.api.types import CategoricalDtype
+        rating_type = CategoricalDtype(categories=[1, 2, 3, 4, 5, 6, 7, 8], ordered=True)
+        data['ordinal_rating'] = data['ordinal_rating'].astype(rating_type)
+
+        # create date column
+        data['day'] = 1
+        data['time'] = pd.to_datetime(data[['year', 'month', 'day']]).dt.date
+        data = data.drop(columns=['year', 'month', 'day'])
+
+        # run regression
+        test = data.set_index(['BB_TICKER', 'time'])
+
+        from linearmodels import PooledOLS, PanelOLS, RandomEffects
+
+        # Pooled OLS Regression
+        model = PanelOLS.from_formula('ordinal_rating ~ TRESGS + EntityEffects', data=test)
+        result = model.fit()
+        print(result)
+
+        # logit regression
+        from statsmodels.miscmodels.ordinal_model import OrderedModel
+        mod_log = OrderedModel(test['ordinal_rating'],
+                               test[['TRESGS', 'ROA', 'LEVERAGE', 'SIZE', 'INTEREST_COVERAGE_RATIO', 'OPER_MARGIN']],
+                               distr='logit')
+
+        res_log = mod_log.fit(method='bfgs', disp=False)
+        res_log.summary()
+
         return data
 
     def h1_sustainalytics(self):
@@ -65,6 +96,18 @@ class PrepareData:
         data = data.merge(self.cleaned_data_dict['control_var'], on=['month', 'year', Variables.Bloomberg.BB_TICKER], how='left')
         data = data.dropna(how='any')
         data = data.loc[data['ordinal_rating'] != 0]
+
+        # regression
+        from pandas.api.types import CategoricalDtype
+        rating_type = CategoricalDtype(categories=[1, 2, 3, 4, 5, 6, 7, 8], ordered=True)
+        data['ordinal_rating'] = data['ordinal_rating'].astype(rating_type)
+
+        from statsmodels.miscmodels.ordinal_model import OrderedModel
+        mod_log = OrderedModel(data['ordinal_rating'],
+                               data[['SUSTAINALYTICS_RANK', 'ROA', 'LEVERAGE', 'SIZE', 'INTEREST_COVERAGE_RATIO', 'OPER_MARGIN']],
+                               distr='logit')
+        res_log = mod_log.fit(method='bfgs', disp=False)
+        res_log.summary()
 
         return data
 
@@ -94,9 +137,153 @@ class PrepareData:
         data = data.dropna(how='any')
         data = data.loc[data['ordinal_rating'] != 0]
 
+        mod_log = OrderedModel(data['ordinal_rating'],
+                               data[['ROBECOSAM_TOTAL_STBLY_RANK', 'ROA', 'LEVERAGE', 'SIZE', 'INTEREST_COVERAGE_RATIO',
+                                     'OPER_MARGIN']],
+                               distr='logit')
+        res_log = mod_log.fit(method='bfgs', disp=False)
+        res_log.summary()
+
+        return data
+
+    def h2_refinitiv(self):
+        refinitiv = self.cleaned_data_dict['refinitiv']
+        # create date column
+        refinitiv['day'] = 1
+        refinitiv['time'] = pd.to_datetime(refinitiv[['year', 'month', 'day']]).dt.date
+        refinitiv = refinitiv.drop(columns=['year', 'month', 'day'])
+        refinitiv = refinitiv.drop(columns=['ID_ISIN', 'Dates'])
+        refinitiv['esg_rated'] = 1
+
+        populated_sp = self.cleaned_data_dict['populated_sp']
+        # only get credit rating during the time Refinitiv provides ESG rating
+        populated_sp['day'] = 1
+        populated_sp['time'] = pd.to_datetime(populated_sp[['year', 'month', 'day']]).dt.date
+        populated_sp = populated_sp.drop(columns=['year', 'month', 'day'])
+        populated_sp = populated_sp.loc[
+            (populated_sp['time'] >= refinitiv['time'].min()) &
+            (populated_sp['time'] <= refinitiv['time'].max())
+            ]
+
+        data = []
+        for company in populated_sp[Variables.Bloomberg.BB_TICKER].unique():
+            temp = populated_sp.loc[populated_sp[Variables.Bloomberg.BB_TICKER] == company]
+            df = pd.DataFrame({
+                Variables.Bloomberg.BB_TICKER: [company],
+                'no_credit_rtg_changes': [(np.diff(temp['ordinal_rating']) != 0).sum()]
+            })
+            data.append(df)
+        data = pd.concat(data)
+
+        data = data.merge(refinitiv[[Variables.Bloomberg.BB_TICKER, 'esg_rated']].drop_duplicates(keep='first'),
+                          on=Variables.Bloomberg.BB_TICKER, how='left')
+        data.loc[data['esg_rated'].isnull(), 'esg_rated'] = 0
+
+        from statsmodels.formula.api import ols
+        fit = ols('no_credit_rtg_changes ~ C(esg_rated)', data=data).fit()
+
+        fit.summary()
+
+        return data
+
+    def h2_sustainalytics(self):
+
+        sustainalytics = self.cleaned_data_dict['sustainalytics']
+        # create date column
+        sustainalytics['day'] = 1
+        sustainalytics['time'] = pd.to_datetime(sustainalytics[['year', 'month', 'day']]).dt.date
+        sustainalytics = sustainalytics.drop(columns=['year', 'month', 'day'])
+        sustainalytics['esg_rated'] = 1
+        sustainalytics = sustainalytics.drop(columns=[
+            'Dates',
+            Variables.SPGlobalESG.ENV,
+            Variables.SPGlobalESG.ECON,
+            Variables.SPGlobalESG.SOCIAL,
+            Variables.SPGlobalESG.TOTAL,
+        ])
+
+        populated_sp = self.cleaned_data_dict['populated_sp']
+        # only get credit rating during the time Refinitiv provides ESG rating
+        populated_sp['day'] = 1
+        populated_sp['time'] = pd.to_datetime(populated_sp[['year', 'month', 'day']]).dt.date
+        populated_sp = populated_sp.drop(columns=['year', 'month', 'day'])
+        populated_sp = populated_sp.loc[
+            (populated_sp['time'] >= sustainalytics['time'].min()) &
+            (populated_sp['time'] <= sustainalytics['time'].max())
+            ]
+
+        data = []
+        for company in populated_sp[Variables.Bloomberg.BB_TICKER].unique():
+            temp = populated_sp.loc[populated_sp[Variables.Bloomberg.BB_TICKER] == company]
+            df = pd.DataFrame({
+                Variables.Bloomberg.BB_TICKER: [company],
+                'no_credit_rtg_changes': [(np.diff(temp['ordinal_rating']) != 0).sum()]
+            })
+            data.append(df)
+        data = pd.concat(data)
+
+        data = data.merge(sustainalytics[[Variables.Bloomberg.BB_TICKER, 'esg_rated']].drop_duplicates(keep='first'),
+                          on=Variables.Bloomberg.BB_TICKER, how='left')
+        data.loc[data['esg_rated'].isnull(), 'esg_rated'] = 0
+
+        from statsmodels.formula.api import ols
+        fit = ols('no_credit_rtg_changes ~ C(esg_rated)', data=data).fit()
+
+        fit.summary()
+
+        return data
+
+    def h2_spglobal(self):
+        spglobal = self.cleaned_data_dict['robecosam']
+        spglobal = spglobal.drop(columns=[
+            'Dates',
+            Variables.SustainalyticsESG.ENV,
+            Variables.SustainalyticsESG.SOCIAL,
+            Variables.SustainalyticsESG.GOV,
+            Variables.SustainalyticsESG.TOTAL,
+        ])
+        # create date column
+        spglobal['day'] = 1
+        spglobal['time'] = pd.to_datetime(spglobal[['year', 'month', 'day']]).dt.date
+        spglobal = spglobal.drop(columns=['year', 'month', 'day'])
+        spglobal['esg_rated'] = 1
+
+        populated_sp = self.cleaned_data_dict['populated_sp']
+        # only get credit rating during the time Refinitiv provides ESG rating
+        populated_sp['day'] = 1
+        populated_sp['time'] = pd.to_datetime(populated_sp[['year', 'month', 'day']]).dt.date
+        populated_sp = populated_sp.drop(columns=['year', 'month', 'day'])
+        populated_sp = populated_sp.loc[
+            (populated_sp['time'] >= spglobal['time'].min()) &
+            (populated_sp['time'] <= spglobal['time'].max())
+            ]
+
+        data = []
+        for company in populated_sp[Variables.Bloomberg.BB_TICKER].unique():
+            temp = populated_sp.loc[populated_sp[Variables.Bloomberg.BB_TICKER] == company]
+            df = pd.DataFrame({
+                Variables.Bloomberg.BB_TICKER: [company],
+                'no_credit_rtg_changes': [(np.diff(temp['ordinal_rating']) != 0).sum()]
+            })
+            data.append(df)
+        data = pd.concat(data)
+
+        data = data.merge(spglobal[[Variables.Bloomberg.BB_TICKER, 'esg_rated']].drop_duplicates(keep='first'),
+                          on=Variables.Bloomberg.BB_TICKER, how='left')
+        data.loc[data['esg_rated'].isnull(), 'esg_rated'] = 0
+
+        from statsmodels.formula.api import ols
+        fit = ols('no_credit_rtg_changes ~ C(esg_rated)', data=data).fit()
+
+        fit.summary()
+
         return data
 
 
+
+
+
+
 if __name__ == "__main__":
-    # PrepareData().control()
+    PrepareData().control()
     pass
