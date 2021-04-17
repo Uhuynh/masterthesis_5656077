@@ -97,7 +97,7 @@ class ExtractData(DataRoot):
         control_var = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.CleanedData.FILE_NAME),
                                     sheet_name=Variables.CleanedData.POPULATED_ACCOUNTING_SHEET_NAME)
 
-        return {'robecosam': spglobal,
+        return {'spglobal': spglobal,
                 'sustainalytics': sustainalytics,
                 'refinitiv': refinitiv,
                 'populated_sp': populated_sp,

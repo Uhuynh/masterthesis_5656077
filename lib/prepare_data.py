@@ -20,49 +20,54 @@ class PrepareData(DataRoot):
     def control(self):
         pass
 
-    def h1_refinitiv(self):
+        # data for hypothesis 1, separated by ESG rating providers
+        h1_refinitiv = self.hypothesis1(data=self.cleaned_data_dict['refinitiv'])
+        h1_spglobal = self.hypothesis1(data=self.cleaned_data_dict['spglobal'])
+        h1_sustainalytics = self.hypothesis1(data=self.cleaned_data_dict['sustainalytics'])
+
+    def hypothesis1(self, data):
         """
-        Retrieve all data necessary to run hypothesis 1 for Refinitiv ESG scores
+        :parameter data dataframe of cleaned ESG scores for a specific ESG rating provider
+
+        Retrieve all data necessary to run hypothesis 1 for corresponding ESG data
         All NA values and where ordinal credit rating = 0 (NR) are excluded.
         """
-        refinitiv = self.cleaned_data_dict['refinitiv']
-        refinitiv = refinitiv.drop(columns=['ID_ISIN', 'Dates'])
 
         # get industry data
-        refinitiv = refinitiv.merge(self.company_info[[Variables.Bloomberg.BB_TICKER, 'INDUSTRY']],
-                                    on=Variables.Bloomberg.BB_TICKER, how='left')
+        data = data.merge(self.company_info[[Variables.Bloomberg.BB_TICKER, 'INDUSTRY']],
+                          on=Variables.Bloomberg.BB_TICKER, how='left')
 
         # merge ESG data with time series from 2006 to 2020, group by company
-        data = []
-        for company in refinitiv[Variables.Bloomberg.BB_TICKER].unique():
-            df = refinitiv.loc[refinitiv[Variables.Bloomberg.BB_TICKER] == company]
+        result = []
+        for company in data[Variables.Bloomberg.BB_TICKER].unique():
+            df = data.loc[data[Variables.Bloomberg.BB_TICKER] == company]
             df = self.timerange.merge(df, on=['month', 'year'], how='left')
-            data.append(df)
-        data = pd.concat(data)
+            result.append(df)
+        result = pd.concat(result)
 
         # merge ESG data with credit ratings and accounting data
-        data = data.merge(self.cleaned_data_dict['populated_sp'], on=['month', 'year', Variables.Bloomberg.BB_TICKER], how='left')
-        data = data.merge(self.cleaned_data_dict['control_var'], on=['month', 'year', Variables.Bloomberg.BB_TICKER], how='left')
+        result = result.merge(self.cleaned_data_dict['populated_sp'], on=['month', 'year', Variables.Bloomberg.BB_TICKER], how='left')
+        result = result.merge(self.cleaned_data_dict['control_var'], on=['month', 'year', Variables.Bloomberg.BB_TICKER], how='left')
 
         # drop rows where there is at least 1 NA value
-        data = data.dropna(how='any')
+        result = result.dropna(how='any')
 
         # drop credit ratings with 'NR' values (i.e 0)
-        data = data.loc[data['ordinal_rating'] != 0].reset_index(drop=True)
+        result = result.loc[result['ordinal_rating'] != 0].reset_index(drop=True)
 
         # create year dummies
-        year_dummy = pd.get_dummies(data['year'])
+        year_dummy = pd.get_dummies(result['year'])
 
         # create industry dummies
-        industry_dummy = pd.get_dummies(data['INDUSTRY'])
+        industry_dummy = pd.get_dummies(result['INDUSTRY'])
 
         # merge dummies to data on index
-        data = data.merge(year_dummy, how='left', left_index=True, right_index=True)
-        data = data.merge(industry_dummy, how='left', left_index=True, right_index=True)
+        result = result.merge(year_dummy, how='left', left_index=True, right_index=True)
+        result = result.merge(industry_dummy, how='left', left_index=True, right_index=True)
 
         # convert credit rating to categorical variable
         rating_type = CategoricalDtype(categories=[1, 2, 3, 4, 5, 6, 7, 8], ordered=True)
-        data['ordinal_rating'] = data['ordinal_rating'].astype(rating_type)
+        result['ordinal_rating'] = result['ordinal_rating'].astype(rating_type)
 
         # create date column
         # data['day'] = 1
@@ -88,7 +93,7 @@ class PrepareData(DataRoot):
         # res_log = mod_log.fit(method='bfgs', disp=False)
         # res_log.summary()
 
-        return data
+        return result
 
     def h1_sustainalytics(self):
         """

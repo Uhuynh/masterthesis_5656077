@@ -39,7 +39,7 @@ class AnalyseData:
     @staticmethod
     def corr(data):
         """
-        :parameter data: a dataframe of regression data, extracted from regression_data.xlsx
+        :parameter data: a dataframe of regression data, extracted from 'regression_data.xlsx'
         Generate correlation coefficients and p-values.
             - scipy library is used to calculate Pearson pairwise correlation and two-sided p-values
               for more info regarding the library:
@@ -49,7 +49,6 @@ class AnalyseData:
         stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.RegressionData.ESG_SOC_VAR])
         stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.RegressionData.ESG_GOV_VAR])
         stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.RegressionData.CREDIT_RTG_VAR])
-        stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.ControlVar.ROA])
         stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.ControlVar.LVG])
         stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.ControlVar.SIZE])
         stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.ControlVar.ICOV])
@@ -58,7 +57,6 @@ class AnalyseData:
         stats.pearsonr(data[Variables.RegressionData.ESG_ENV_VAR], data[Variables.RegressionData.ESG_SOC_VAR])
         stats.pearsonr(data[Variables.RegressionData.ESG_ENV_VAR], data[Variables.RegressionData.ESG_GOV_VAR])
         stats.pearsonr(data[Variables.RegressionData.ESG_ENV_VAR], data[Variables.RegressionData.CREDIT_RTG_VAR])
-        stats.pearsonr(data[Variables.RegressionData.ESG_ENV_VAR], data[Variables.ControlVar.ROA])
         stats.pearsonr(data[Variables.RegressionData.ESG_ENV_VAR], data[Variables.ControlVar.LVG])
         stats.pearsonr(data[Variables.RegressionData.ESG_ENV_VAR], data[Variables.ControlVar.SIZE])
         stats.pearsonr(data[Variables.RegressionData.ESG_ENV_VAR], data[Variables.ControlVar.ICOV])
@@ -66,29 +64,21 @@ class AnalyseData:
 
         stats.pearsonr(data[Variables.RegressionData.ESG_SOC_VAR], data[Variables.RegressionData.ESG_GOV_VAR])
         stats.pearsonr(data[Variables.RegressionData.ESG_SOC_VAR], data[Variables.RegressionData.CREDIT_RTG_VAR])
-        stats.pearsonr(data[Variables.RegressionData.ESG_SOC_VAR], data[Variables.ControlVar.ROA])
         stats.pearsonr(data[Variables.RegressionData.ESG_SOC_VAR], data[Variables.ControlVar.LVG])
         stats.pearsonr(data[Variables.RegressionData.ESG_SOC_VAR], data[Variables.ControlVar.SIZE])
         stats.pearsonr(data[Variables.RegressionData.ESG_SOC_VAR], data[Variables.ControlVar.ICOV])
         stats.pearsonr(data[Variables.RegressionData.ESG_SOC_VAR], data[Variables.ControlVar.OMAR])
 
         stats.pearsonr(data[Variables.RegressionData.ESG_GOV_VAR], data[Variables.RegressionData.CREDIT_RTG_VAR])
-        stats.pearsonr(data[Variables.RegressionData.ESG_GOV_VAR], data[Variables.ControlVar.ROA])
         stats.pearsonr(data[Variables.RegressionData.ESG_GOV_VAR], data[Variables.ControlVar.LVG])
         stats.pearsonr(data[Variables.RegressionData.ESG_GOV_VAR], data[Variables.ControlVar.SIZE])
         stats.pearsonr(data[Variables.RegressionData.ESG_GOV_VAR], data[Variables.ControlVar.ICOV])
         stats.pearsonr(data[Variables.RegressionData.ESG_GOV_VAR], data[Variables.ControlVar.OMAR])
 
-        stats.pearsonr(data[Variables.RegressionData.CREDIT_RTG_VAR], data[Variables.ControlVar.ROA])
         stats.pearsonr(data[Variables.RegressionData.CREDIT_RTG_VAR], data[Variables.ControlVar.LVG])
         stats.pearsonr(data[Variables.RegressionData.CREDIT_RTG_VAR], data[Variables.ControlVar.SIZE])
         stats.pearsonr(data[Variables.RegressionData.CREDIT_RTG_VAR], data[Variables.ControlVar.ICOV])
         stats.pearsonr(data[Variables.RegressionData.CREDIT_RTG_VAR], data[Variables.ControlVar.OMAR])
-
-        stats.pearsonr(data[Variables.ControlVar.ROA], data[Variables.ControlVar.LVG])
-        stats.pearsonr(data[Variables.ControlVar.ROA], data[Variables.ControlVar.SIZE])
-        stats.pearsonr(data[Variables.ControlVar.ROA], data[Variables.ControlVar.ICOV])
-        stats.pearsonr(data[Variables.ControlVar.ROA], data[Variables.ControlVar.OMAR])
 
         stats.pearsonr(data[Variables.ControlVar.LVG], data[Variables.ControlVar.SIZE])
         stats.pearsonr(data[Variables.ControlVar.LVG], data[Variables.ControlVar.ICOV])
@@ -361,5 +351,5 @@ class AnalyseData:
 
 if __name__ == "__main__":
     AnalyseData().control()
-    AnalyseData().corr(data=AnalyseData().regression_data_dict['h1_refinitiv'])
+    # AnalyseData().corr(data=AnalyseData().regression_data_dict['h1_refinitiv'])
     pass
