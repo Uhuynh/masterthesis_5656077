@@ -13,12 +13,6 @@ class AnalyseData:
 
     def control(self):
         pass
-        # credit_rating_summary = self.count_data(cleaned_data_dict)
-        # corr_matrix_esg = self.corr_matrix(cleaned_data_dict)
-        # refinitiv_statistics = self.descriptive_statistics(cleaned_data_dict, provider='refinitiv')
-        #
-        # # esg_availability = self.check_data_availability(cleaned_data_dict)
-        # self.check_time_range(cleaned_data_dict)
 
     def descriptive_stat(self):
         """
@@ -41,7 +35,7 @@ class AnalyseData:
         """
         :parameter data: a dataframe of regression data, extracted from 'regression_data.xlsx'
         Generate correlation coefficients and p-values.
-            - scipy library is used to calculate Pearson pairwise correlation and two-sided p-values
+            - scipy library is used to calculate Pearson pairwise correlation and two-sided p-values,
               for more info regarding the library:
               https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html
         """
