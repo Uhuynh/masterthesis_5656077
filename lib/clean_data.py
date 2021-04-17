@@ -11,8 +11,8 @@ class CleanBase(DataRoot):
     """
     This class provides an overview of standard ETL procedure for cleaning the raw data:
         1. Extract raw data downloaded from Bloomberg/Refinitiv in Excel
-        2. Transform data (from wide to long format)
-        3. Load transformed data by exporting to Excel files.
+        2. Transform data (convert wide format to long format)
+        3. Load transformed data by exporting to Excel.
     """
 
     def __init__(self):
@@ -39,7 +39,7 @@ class BloombergESG(CleanBase):
         super().__init__()
 
     def control(self):
-        data = self.extract_data(file_name=Variables.Bloomberg.FILE_NAME,
+        data = self.extract_data(file_name=Variables.Bloomberg.RAW_DATA_FILE_NAME,
                                  sheet_name=Variables.Bloomberg.ESG_SHEET_NAME)
         data_t = self.transform_data(data)
         self.load_data(transformed_data=data_t,
@@ -102,7 +102,7 @@ class RefinitivESG(CleanBase):
         super().__init__()
 
     def control(self):
-        data = self.extract_data(file_name=Variables.Refinitiv.FILE_NAME,
+        data = self.extract_data(file_name=Variables.Refinitiv.RAW_DATA_FILE_NAME,
                                  sheet_name=Variables.Refinitiv.ESG_SHEET_NAME)
         data_t = self.transform_data(data)
         self.load_data(transformed_data=data_t,
@@ -209,7 +209,7 @@ class BloombergCreditRtg(CleanBase):
         ###############################
 
         # get rating changes from Bloomberg
-        rating_changes_bb = self.extract_data(file_name=Variables.Bloomberg.FILE_NAME,
+        rating_changes_bb = self.extract_data(file_name=Variables.Bloomberg.RAW_DATA_FILE_NAME,
                                               sheet_name=Variables.Bloomberg.SP_RATING_CHANGES_SHEET_NAME)
 
         # only get LT Foreign Rating
@@ -317,7 +317,7 @@ class BloombergAccounting(BloombergESG):
         super().__init__()
 
     def control(self):
-        data = self.extract_data(file_name=Variables.Bloomberg.FILE_NAME,
+        data = self.extract_data(file_name=Variables.Bloomberg.RAW_DATA_FILE_NAME,
                                  sheet_name=Variables.Bloomberg.ACCOUNTING_SHEET_NAME)
         data_t = self.transform_data(data)
         self.load_data(transformed_data=data_t, file_name=Variables.CleanedData.FILE_NAME,
@@ -325,25 +325,19 @@ class BloombergAccounting(BloombergESG):
 
         data = self.calculate_control_var(data_t)
         populated_data = self.populate(data)
-        self.load_data(transformed_data=data_t, file_name=Variables.CleanedData.FILE_NAME,
-                       sheet_name=Variables.CleanedData.ACCOUNTING_SHEET_NAME)
-
-        # result = self.clean(data)
-        # self.load_data(transformed_data=result,
-        #                file_name='cleaned_data.xlsx',
-        #                sheet_name='control_var')
+        self.load_data(transformed_data=populated_data, file_name=Variables.CleanedData.FILE_NAME,
+                       sheet_name=Variables.CleanedData.POPULATED_ACCOUNTING_SHEET_NAME)
 
     @staticmethod
     def calculate_control_var(data):
         """
         Calculate additional control variables
-            - SIZE = natural log of Total Assets
+            - SIZE = natural log of Total Assets in millions of Euros
             - LEVERAGE = (Long-term Borrowing / Total Assets) * 100
             - ROA = (EBIT / Total Assets) * 100
         """
         data['SIZE'] = np.log(data['BS_TOT_ASSET'])
         data['LEVERAGE'] = (data['BS_LT_BORROW'] / data['BS_TOT_ASSET']) * 100
-        data['ROA'] = (data['EBIT'] / data['BS_TOT_ASSET']) * 100
 
         return data
 
@@ -357,11 +351,10 @@ class BloombergAccounting(BloombergESG):
             Variables.Bloomberg.BB_TICKER,
             'month',
             'year',
-            Variables.ControlVar.ROA,
             Variables.ControlVar.LVG,
             Variables.ControlVar.SIZE,
-            Variables.ControlVar.INT_COV,
-            Variables.ControlVar.O_MARGIN,
+            Variables.ControlVar.ICOV,
+            Variables.ControlVar.OMAR,
         ]]
         populated = []
         for company in data[Variables.Bloomberg.BB_TICKER].unique():
@@ -378,26 +371,6 @@ class BloombergAccounting(BloombergESG):
         populated = populated.dropna(axis=0, how='any')
 
         return populated
-
-    # @staticmethod
-    # def clean(data_t):
-    #     """
-    #     Exclude companies that do not have enough control variables
-    #     """
-    #     data = data_t[['SIZE',
-    #                    'LEVERAGE',
-    #                    'ROA',
-    #                    'OPER_MARGIN',
-    #                    'INTEREST_COVERAGE_RATIO',
-    #                    'Fundamental Ticker Equity',
-    #                    'Dates']]
-    #
-    #     # drop row that has NA values
-    #     data = data.dropna(axis=0, how='any')
-    #
-    #     return data
-
-
 
 
 if __name__ == "__main__":

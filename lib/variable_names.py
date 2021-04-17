@@ -6,7 +6,7 @@ class Variables:
 
     class Bloomberg:
 
-        FILE_NAME = 'bloomberg_raw.xlsx'
+        RAW_DATA_FILE_NAME = 'bloomberg_raw.xlsx'
         ESG_SHEET_NAME = 'esg'
         COMPANY_INFO_SHEET_NAME = 'company_info'
         SP_RATING_CHANGES_SHEET_NAME = 'sp_rating_changes'
@@ -16,7 +16,7 @@ class Variables:
 
     class Refinitiv:
 
-        FILE_NAME = 'refinitiv_raw.xlsx'
+        RAW_DATA_FILE_NAME = 'refinitiv_raw.xlsx'
         ESG_SHEET_NAME = 'esg'
 
 
@@ -59,9 +59,8 @@ class Variables:
 
         SIZE = 'SIZE'
         LVG = 'LEVERAGE'
-        INT_COV = 'INTEREST_COVERAGE_RATIO'
-        O_MARGIN = 'OPER_MARGIN'
-        ROA = 'ROA'
+        ICOV = 'INTEREST_COVERAGE_RATIO'
+        OMAR = 'OPER_MARGIN'
 
 
     class CleanedData:
@@ -81,3 +80,8 @@ class Variables:
         H1_SUSTAINALYTICS_SHEET_NAME = 'h1_sustainalytics'
         H1_REFINITIV_SHEET_NAME = 'h1_refinitiv'
         H1_SPGLOBAL_SHEET_NAME = 'h1_spglobal'
+        ESG_RTG_VAR = 'ESG_RTG'
+        ESG_ENV_VAR = 'ESG_E'
+        ESG_SOC_VAR = 'ESG_S'
+        ESG_GOV_VAR = 'ESG_G'
+        CREDIT_RTG_VAR = 'CREDIT_RTG'
