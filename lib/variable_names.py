@@ -52,7 +52,7 @@ class Variables:
 
     class SPCreditRtg:
 
-        LT_FOREIGN_ISSUER = 'LT Foreign Issuer Credit'
+        LT_LOCAL_ISSUER = 'LT Local Issuer Credit'
 
 
     class ControlVar:
@@ -80,8 +80,12 @@ class Variables:
         H1_SUSTAINALYTICS_SHEET_NAME = 'h1_sustainalytics'
         H1_REFINITIV_SHEET_NAME = 'h1_refinitiv'
         H1_SPGLOBAL_SHEET_NAME = 'h1_spglobal'
+        H2_SHEET_NAME = 'h2'
+
         ESG_RTG_VAR = 'ESG_RTG'
         ESG_ENV_VAR = 'ESG_E'
         ESG_SOC_VAR = 'ESG_S'
         ESG_GOV_VAR = 'ESG_G'
         CREDIT_RTG_VAR = 'CREDIT_RTG'
+        CREDIT_RTG_CHANGE_VAR = 'CREDIT_RTG_CHANGE'
+        ESG_RATED_DUMMY = 'ESG_RATED'

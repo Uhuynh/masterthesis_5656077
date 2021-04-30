@@ -173,71 +173,135 @@ class RefinitivESG(CleanBase):
 
 class BloombergCreditRtg(CleanBase):
     """
-    Clean S&P credit rating changes downloaded from Bloomberg
-    and merge with credit rating provided from supervisor.
+    This class clean and transform data for credit ratings.
+    It performs the following steps:
+
+        - clean_supervisor_data():
+            + clean credit ratings provided by supervisor (Zorka)
+
+        - clean_bb_data():
+            + clean credit ratings changes downloaded from Bloomberg
+
+        - merge_all():
+            + merge the two above datasets
+
+        - hard_code_rtg():
+            + transform credit ratings to an ordinal scale
+
+        - classify_rtg():
+            + label whether a rating is investment / speculative grade
+
+        - populate_rtg():
+            + populate credit ratings to monthly data
+            + because we only have information when there is a change in credit ratings from Bloomberg,
+            not a continuous time series
     """
 
     def __init__(self):
         super().__init__()
 
     def control(self):
+        """
+        This function executes workflow of cleaning credit ratings
+        """
+
+        # get supervisor's provided data
         supervisor_data = self.extract_data(file_name=Variables.SupervisorData.FILE_NAME,
                                             sheet_name=Variables.SupervisorData.SHEET_NAME)
-        data_t = self.transform_data(supervisor_data)
-        result = self.hard_code_rating(data_t)
-        self.load_data(transformed_data=result, file_name=Variables.CleanedData.FILE_NAME,
+
+        # clean supervisor's provided data
+        supervisor_data_c = self.clean_supervisor_data(supervisor_data)
+
+        # get Bloomberg data
+        bb_data = self.extract_data(file_name=Variables.Bloomberg.RAW_DATA_FILE_NAME,
+                                    sheet_name=Variables.Bloomberg.SP_RATING_CHANGES_SHEET_NAME)
+
+        # clean Bloomberg data
+        bb_data_c = self.clean_bb_data(bb_data)
+
+        # merge cleaned Bloomberg data and supervisor's provided data
+        data = self.merge_all(supervisor_data_c, bb_data_c)
+
+        # transform credit ratings to an ordinal scale
+        data_t = self.hard_code_rtg(data)
+
+        # classify credit ratings
+        sp_credit_rtg = self.classify_rtg(data_t)
+
+        # populate cleaned ratings to monthly data from 2006 --> 2020
+        populated_rtg = self.populate_rtg(sp_credit_rtg)
+
+        # write cleaned ratings to Excel
+        self.load_data(transformed_data=sp_credit_rtg, file_name=Variables.CleanedData.FILE_NAME,
                        sheet_name=Variables.CleanedData.SP_CREDIT_RTG_SHEET_NAME)
-        populated_rtg = self.populate_rtg(result)
+
+        # write populated cleaned ratings to Excel
         self.load_data(transformed_data=populated_rtg, file_name=Variables.CleanedData.FILE_NAME,
                        sheet_name=Variables.CleanedData.POPULATED_SP_CREDIT_RTG_SHEET_NAME)
 
-    def transform_data(self, supervisor_data):
-        ##################################
-        # transform data provided by Zorka
-        ##################################
 
-        # merge credit ratings (from Zorka) to selected companies
+    def clean_supervisor_data(self, supervisor_data):
+        """
+        Transform credit rating dataset provided by supervisor.
+        """
+
+        # merge credit ratings (from Zorka) to list of selected companies on 'company_id'
         data = self.company_info[['companyid', Variables.Bloomberg.BB_TICKER]].merge(
-            supervisor_data[['companyid', 'rating_date', 'rating']], on='companyid', how='left')
+            supervisor_data[['companyid', 'rating_date', 'rating']],
+            on='companyid',
+            how='left')
 
         # remove NAs
         data = data.loc[data['rating'].notnull()]
+
+        # convert 'rating_date' from datetime to date
         data['rating_date'] = data['rating_date'].dt.date
 
-        ###############################
-        # transform data from Bloomberg
-        ###############################
-
-        # get rating changes from Bloomberg
-        rating_changes_bb = self.extract_data(file_name=Variables.Bloomberg.RAW_DATA_FILE_NAME,
-                                              sheet_name=Variables.Bloomberg.SP_RATING_CHANGES_SHEET_NAME)
-
-        # only get LT Foreign Rating
-        rating_changes_bb = rating_changes_bb.loc[rating_changes_bb['Rating Type'] == Variables.SPCreditRtg.LT_FOREIGN_ISSUER]
-
-        # retrieve rating after change
-        rating_changes_bb[['rating', 'outlook']] = rating_changes_bb['Curr Rtg'].str.split(' ', 1, expand=True)
-        rating_changes_bb = rating_changes_bb[['Date', 'rating', 'Security Name']]
-
-        rating_changes_bb['Date'] = pd.to_datetime(rating_changes_bb['Date'])
-        rating_changes_bb['Date'] = rating_changes_bb['Date'].dt.date
-
-        rating_changes_bb = rating_changes_bb.rename(columns={'Date': 'rating_date',
-                                                              'Security Name': Variables.Bloomberg.BB_TICKER})
-
-        ###################################
-        # merge data from Zorka & Bloomberg
-        ###################################
-        data_t = data.merge(rating_changes_bb, how='outer', on=[Variables.Bloomberg.BB_TICKER, 'rating_date', 'rating'])
-        data_t = data_t.sort_values([Variables.Bloomberg.BB_TICKER, 'rating_date'], ascending=True)
-
-        data_t = data_t.drop(columns=['companyid'])
-        data_t = data_t.drop_duplicates(keep='first')
-
-        return data_t
+        return data
 
     @staticmethod
-    def hard_code_rating(data):
+    def clean_bb_data(bb_data):
+        """
+        Transform credit rating changes downloaded from Bloomberg
+        """
+        # extract only LT Local Issuer Rating
+        bb_data = bb_data.loc[bb_data['Rating Type'] == Variables.SPCreditRtg.LT_LOCAL_ISSUER]
+
+        # extract ratings after change
+        bb_data[['rating', 'outlook']] = bb_data['Curr Rtg'].str.split(' ', 1, expand=True)
+        bb_data = bb_data[['Date', 'rating', 'Security Name']]
+
+        # rename columns
+        bb_data.rename(columns={'Date': 'rating_date', 'Security Name': Variables.Bloomberg.BB_TICKER}, inplace=True)
+
+        # convert 'rating_date' from datetime to date
+        bb_data['rating_date'] = pd.to_datetime(bb_data['rating_date']).dt.date
+
+        return bb_data
+
+    @staticmethod
+    def merge_all(supervisor_data_c, bb_data_c):
+        """
+        Merge cleaned Bloomberg data and supervisor's provided data
+            - Bloomberg data: timerange from 2006 --> 2020
+            - Supervisor's data: timerange from 1980 --> 2015
+                --> an outer merge is performed and then duplicates are dropped.
+        """
+        # merge
+        data = supervisor_data_c.merge(bb_data_c,
+                                       how='outer',
+                                       on=[Variables.Bloomberg.BB_TICKER, 'rating_date', 'rating'])
+
+        data = data.sort_values([Variables.Bloomberg.BB_TICKER, 'rating_date'], ascending=True)
+
+        # drop duplicates and unnecessary column
+        data = data.drop(columns=['companyid'])
+        data = data.drop_duplicates(keep='first')
+
+        return data
+
+    @staticmethod
+    def hard_code_rtg(data):
         """
         Transform credit rating to an ordinal scale
             - NR: rating has not been assigned or is no longer assigned.
@@ -246,38 +310,50 @@ class BloombergCreditRtg(CleanBase):
         data.loc[data['rating'] == 'D', 'ordinal_rating'] = 1
         data.loc[data['rating'] == 'SD', 'ordinal_rating'] = 1
         data.loc[data['rating'] == 'C', 'ordinal_rating'] = 2
-        data.loc[data['rating'] == 'CC', 'ordinal_rating'] = 2
-        data.loc[data['rating'] == 'CCC-', 'ordinal_rating'] = 3
-        data.loc[data['rating'] == 'CCC', 'ordinal_rating'] = 3
-        data.loc[data['rating'] == 'CCC+', 'ordinal_rating'] = 3
-        data.loc[data['rating'] == 'B-', 'ordinal_rating'] = 4
-        data.loc[data['rating'] == 'B', 'ordinal_rating'] = 4
-        data.loc[data['rating'] == 'B+', 'ordinal_rating'] = 4
-        data.loc[data['rating'] == 'BB-', 'ordinal_rating'] = 5
-        data.loc[data['rating'] == 'BB', 'ordinal_rating'] = 5
-        data.loc[data['rating'] == 'BB+', 'ordinal_rating'] = 5
-        data.loc[data['rating'] == 'BBB-', 'ordinal_rating'] = 6
-        data.loc[data['rating'] == 'BBB', 'ordinal_rating'] = 6
-        data.loc[data['rating'] == 'BBB+', 'ordinal_rating'] = 6
-        data.loc[data['rating'] == 'A-', 'ordinal_rating'] = 7
-        data.loc[data['rating'] == 'A', 'ordinal_rating'] = 7
-        data.loc[data['rating'] == 'A+', 'ordinal_rating'] = 7
-        data.loc[data['rating'] == 'AA-', 'ordinal_rating'] = 8
-        data.loc[data['rating'] == 'AA', 'ordinal_rating'] = 8
-        data.loc[data['rating'] == 'AA+', 'ordinal_rating'] = 8
-        data.loc[data['rating'] == 'AAA', 'ordinal_rating'] = 9
+        data.loc[data['rating'] == 'CC', 'ordinal_rating'] = 3
+        data.loc[data['rating'] == 'CCC-', 'ordinal_rating'] = 4
+        data.loc[data['rating'] == 'CCC', 'ordinal_rating'] = 5
+        data.loc[data['rating'] == 'CCC+', 'ordinal_rating'] = 6
+        data.loc[data['rating'] == 'B-', 'ordinal_rating'] = 7
+        data.loc[data['rating'] == 'B', 'ordinal_rating'] = 8
+        data.loc[data['rating'] == 'B+', 'ordinal_rating'] = 9
+        data.loc[data['rating'] == 'BB-', 'ordinal_rating'] = 10
+        data.loc[data['rating'] == 'BB', 'ordinal_rating'] = 11
+        data.loc[data['rating'] == 'BB+', 'ordinal_rating'] = 12
+        data.loc[data['rating'] == 'BBB-', 'ordinal_rating'] = 13
+        data.loc[data['rating'] == 'BBB', 'ordinal_rating'] = 14
+        data.loc[data['rating'] == 'BBB+', 'ordinal_rating'] = 15
+        data.loc[data['rating'] == 'A-', 'ordinal_rating'] = 16
+        data.loc[data['rating'] == 'A', 'ordinal_rating'] = 17
+        data.loc[data['rating'] == 'A+', 'ordinal_rating'] = 18
+        data.loc[data['rating'] == 'AA-', 'ordinal_rating'] = 19
+        data.loc[data['rating'] == 'AA', 'ordinal_rating'] = 20
+        data.loc[data['rating'] == 'AA+', 'ordinal_rating'] = 21
+        data.loc[data['rating'] == 'AAA', 'ordinal_rating'] = 22
+
+        return data
+
+    @staticmethod
+    def classify_rtg(data):
+        """
+        Labels grade to credit ratings
+            - if > 12 (i.e. BB+): grade = 'investment'
+            - else: grade = 'speculative'
+        """
+        data.loc[data['ordinal_rating'] > 12, 'grade'] = 'investment'
+        data.loc[data['ordinal_rating'] <= 12, 'grade'] = 'speculative'
 
         return data
 
     @staticmethod
     def populate_rtg(data):
         """
-        Populate credit ratings to monthly data from 2006 - 2020.
+        Populate credit ratings to monthly data from 2006 - 2020
+        by using 'ffill' method from pandas package.
         """
 
-        data['rating_date'] = pd.to_datetime(data['rating_date'])
-
         # extract month and year from rating_date
+        data['rating_date'] = pd.to_datetime(data['rating_date'])
         data['month'] = data['rating_date'].dt.month
         data['year'] = data['rating_date'].dt.year
 

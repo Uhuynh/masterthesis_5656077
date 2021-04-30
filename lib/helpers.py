@@ -142,10 +142,15 @@ class ExtractData(DataRoot):
             'ordinal_rating': Variables.RegressionData.CREDIT_RTG_VAR
         }, inplace=True)
 
+        # hypothesis 2
+        h2 = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.FILE_NAME),
+                           sheet_name=Variables.RegressionData.H2_SHEET_NAME)
+
         return {
             'h1_refinitiv': h1_refinitiv,
             'h1_spglobal': h1_spglobal,
-            'h1_sustainalytics': h1_sustainalytics
+            'h1_sustainalytics': h1_sustainalytics,
+            'h2': h2
         }
 
 
