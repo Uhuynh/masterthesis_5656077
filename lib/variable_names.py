@@ -1,7 +1,7 @@
 
 class Variables:
     """
-    Contains variable names that are frequently re-used within the project.
+    Contains variable and file names that are frequently re-used within the project.
     """
 
     class Bloomberg:
@@ -58,7 +58,7 @@ class Variables:
     class ControlVar:
 
         SIZE = 'SIZE'
-        LVG = 'LEVERAGE'
+        LEV = 'LEVERAGE'
         ICOV = 'INTEREST_COVERAGE_RATIO'
         OMAR = 'OPER_MARGIN'
 
@@ -76,16 +76,33 @@ class Variables:
 
     class RegressionData:
 
-        FILE_NAME = 'regression_data.xlsx'
+        # Industries
+        INDUSTRY_1 = 'Aerospace/Automotive/Capital Goods/Metal'
+        INDUSTRY_2 = 'Energy and Natural Resources'
+        INDUSTRY_3 = 'Utility'
+
+        # H1 file names
+        H1_FILE_NAME = 'h1_regression_data.xlsx'
+        H1_WINSORIZED_FILE_NAME = 'h1_regression_data_winsorized.xlsx'
         H1_SUSTAINALYTICS_SHEET_NAME = 'h1_sustainalytics'
         H1_REFINITIV_SHEET_NAME = 'h1_refinitiv'
         H1_SPGLOBAL_SHEET_NAME = 'h1_spglobal'
-        H2_SHEET_NAME = 'h2'
 
-        ESG_RTG_VAR = 'ESG_RTG'
-        ESG_ENV_VAR = 'ESG_E'
-        ESG_SOC_VAR = 'ESG_S'
-        ESG_GOV_VAR = 'ESG_G'
-        CREDIT_RTG_VAR = 'CREDIT_RTG'
-        CREDIT_RTG_CHANGE_VAR = 'CREDIT_RTG_CHANGE'
-        ESG_RATED_DUMMY = 'ESG_RATED'
+        # H2 file names
+        H2_FILE_NAME = 'h2_regression_data.xlsx'
+
+        # hypothesis 1 regression variables
+        H1_ESG_RTG_VAR = 'ESG_RTG'
+        H1_ESG_ENV_VAR = 'ESG_E'
+        H1_ESG_SOC_VAR = 'ESG_S'
+        H1_ESG_GOV_VAR = 'ESG_G'
+        H1_CREDIT_RTG_VAR = 'CREDIT_RTG'
+
+        # hypothesis 2 regression variables
+        H2_CREDIT_RTG_CHANGE_VAR = 'CR_CHANGE'
+        H2_ESG_RATED_DUMMY = 'ESG_RATED'
+        H2_AVG_SIZE_VAR = 'AVG_SIZE'
+        H2_AVG_LEV_VAR = 'AVG_LEV'
+        H2_AVG_ICOV_VAR = 'AVG_ICOV'
+        H2_AVG_OMAR_VAR = 'AVG_OMAR'
+        H2_LONG_TERM_DUMMY = 'LONG_TERM'

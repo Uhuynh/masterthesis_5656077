@@ -14,6 +14,7 @@ class AnalyseData:
     """
     def __init__(self):
         self.regression_data_dict = ExtractData().extract_regression_data()
+        pass
 
     def control(self):
         x = 1
@@ -46,47 +47,48 @@ class AnalyseData:
               for more info regarding the library:
               https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html
         """
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.RegressionData.ESG_ENV_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.RegressionData.ESG_SOC_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.RegressionData.ESG_GOV_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.RegressionData.CREDIT_RTG_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.ControlVar.LVG]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.ControlVar.SIZE]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.ControlVar.ICOV]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_RTG_VAR], data[Variables.ControlVar.OMAR]))
 
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_ENV_VAR], data[Variables.RegressionData.ESG_SOC_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_ENV_VAR], data[Variables.RegressionData.ESG_GOV_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_ENV_VAR], data[Variables.RegressionData.CREDIT_RTG_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_ENV_VAR], data[Variables.ControlVar.LVG]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_ENV_VAR], data[Variables.ControlVar.SIZE]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_ENV_VAR], data[Variables.ControlVar.ICOV]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_ENV_VAR], data[Variables.ControlVar.OMAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.RegressionData.H1_ESG_RTG_VAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.RegressionData.H1_ESG_ENV_VAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.RegressionData.H1_ESG_SOC_VAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.RegressionData.H1_ESG_GOV_VAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.ControlVar.SIZE]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.ControlVar.LEV]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.ControlVar.ICOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.ControlVar.OMAR]))
 
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_SOC_VAR], data[Variables.RegressionData.ESG_GOV_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_SOC_VAR], data[Variables.RegressionData.CREDIT_RTG_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_SOC_VAR], data[Variables.ControlVar.LVG]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_SOC_VAR], data[Variables.ControlVar.SIZE]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_SOC_VAR], data[Variables.ControlVar.ICOV]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_SOC_VAR], data[Variables.ControlVar.OMAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_RTG_VAR], data[Variables.RegressionData.H1_ESG_ENV_VAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_RTG_VAR], data[Variables.RegressionData.H1_ESG_SOC_VAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_RTG_VAR], data[Variables.RegressionData.H1_ESG_GOV_VAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_RTG_VAR], data[Variables.ControlVar.SIZE]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_RTG_VAR], data[Variables.ControlVar.LEV]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_RTG_VAR], data[Variables.ControlVar.ICOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_RTG_VAR], data[Variables.ControlVar.OMAR]))
 
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_GOV_VAR], data[Variables.RegressionData.CREDIT_RTG_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_GOV_VAR], data[Variables.ControlVar.LVG]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_GOV_VAR], data[Variables.ControlVar.SIZE]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_GOV_VAR], data[Variables.ControlVar.ICOV]))
-        print(stats.pearsonr(data[Variables.RegressionData.ESG_GOV_VAR], data[Variables.ControlVar.OMAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_ENV_VAR], data[Variables.RegressionData.H1_ESG_SOC_VAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_ENV_VAR], data[Variables.RegressionData.H1_ESG_GOV_VAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_ENV_VAR], data[Variables.ControlVar.SIZE]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_ENV_VAR], data[Variables.ControlVar.LEV]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_ENV_VAR], data[Variables.ControlVar.ICOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_ENV_VAR], data[Variables.ControlVar.OMAR]))
 
-        print(stats.pearsonr(data[Variables.RegressionData.CREDIT_RTG_VAR], data[Variables.ControlVar.LVG]))
-        print(stats.pearsonr(data[Variables.RegressionData.CREDIT_RTG_VAR], data[Variables.ControlVar.SIZE]))
-        print(stats.pearsonr(data[Variables.RegressionData.CREDIT_RTG_VAR], data[Variables.ControlVar.ICOV]))
-        print(stats.pearsonr(data[Variables.RegressionData.CREDIT_RTG_VAR], data[Variables.ControlVar.OMAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_SOC_VAR], data[Variables.RegressionData.H1_ESG_GOV_VAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_SOC_VAR], data[Variables.ControlVar.SIZE]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_SOC_VAR], data[Variables.ControlVar.LEV]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_SOC_VAR], data[Variables.ControlVar.ICOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_SOC_VAR], data[Variables.ControlVar.OMAR]))
 
-        print(stats.pearsonr(data[Variables.ControlVar.LVG], data[Variables.ControlVar.SIZE]))
-        print(stats.pearsonr(data[Variables.ControlVar.LVG], data[Variables.ControlVar.ICOV]))
-        print(stats.pearsonr(data[Variables.ControlVar.LVG], data[Variables.ControlVar.OMAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_GOV_VAR], data[Variables.ControlVar.SIZE]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_GOV_VAR], data[Variables.ControlVar.LEV]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_GOV_VAR], data[Variables.ControlVar.ICOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_GOV_VAR], data[Variables.ControlVar.OMAR]))
 
+        print(stats.pearsonr(data[Variables.ControlVar.SIZE], data[Variables.ControlVar.LEV]))
         print(stats.pearsonr(data[Variables.ControlVar.SIZE], data[Variables.ControlVar.ICOV]))
         print(stats.pearsonr(data[Variables.ControlVar.SIZE], data[Variables.ControlVar.OMAR]))
+
+        print(stats.pearsonr(data[Variables.ControlVar.LEV], data[Variables.ControlVar.ICOV]))
+        print(stats.pearsonr(data[Variables.ControlVar.LEV], data[Variables.ControlVar.OMAR]))
 
         print(stats.pearsonr(data[Variables.ControlVar.ICOV], data[Variables.ControlVar.OMAR]))
 
@@ -102,19 +104,19 @@ class AnalyseData:
             https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html
         """
         print(stats.pearsonr(data['ESG_RATED'], data['CREDIT_RTG_CHANGE']))
-        print(stats.pearsonr(data['ESG_RATED'], data[Variables.ControlVar.LVG]))
+        print(stats.pearsonr(data['ESG_RATED'], data[Variables.ControlVar.LEV]))
         print(stats.pearsonr(data['ESG_RATED'], data[Variables.ControlVar.SIZE]))
         print(stats.pearsonr(data['ESG_RATED'], data[Variables.ControlVar.ICOV]))
         print(stats.pearsonr(data['ESG_RATED'], data[Variables.ControlVar.OMAR]))
 
-        print(stats.pearsonr(data['CREDIT_RTG_CHANGE'], data[Variables.ControlVar.LVG]))
+        print(stats.pearsonr(data['CREDIT_RTG_CHANGE'], data[Variables.ControlVar.LEV]))
         print(stats.pearsonr(data['CREDIT_RTG_CHANGE'], data[Variables.ControlVar.SIZE]))
         print(stats.pearsonr(data['CREDIT_RTG_CHANGE'], data[Variables.ControlVar.ICOV]))
         print(stats.pearsonr(data['CREDIT_RTG_CHANGE'], data[Variables.ControlVar.OMAR]))
 
-        print(stats.pearsonr(data[Variables.ControlVar.LVG], data[Variables.ControlVar.SIZE]))
-        print(stats.pearsonr(data[Variables.ControlVar.LVG], data[Variables.ControlVar.ICOV]))
-        print(stats.pearsonr(data[Variables.ControlVar.LVG], data[Variables.ControlVar.OMAR]))
+        print(stats.pearsonr(data[Variables.ControlVar.LEV], data[Variables.ControlVar.SIZE]))
+        print(stats.pearsonr(data[Variables.ControlVar.LEV], data[Variables.ControlVar.ICOV]))
+        print(stats.pearsonr(data[Variables.ControlVar.LEV], data[Variables.ControlVar.OMAR]))
 
         print(stats.pearsonr(data[Variables.ControlVar.SIZE], data[Variables.ControlVar.ICOV]))
         print(stats.pearsonr(data[Variables.ControlVar.SIZE], data[Variables.ControlVar.OMAR]))
@@ -135,11 +137,11 @@ class AnalyseData:
         plt.figure(figsize=(20, 20))
         sns.pairplot(data,
                      vars=[
-                         'year',
-                         Variables.RegressionData.ESG_RTG_VAR,
-                         Variables.RegressionData.CREDIT_RTG_VAR,
+                         # 'year',
+                         Variables.RegressionData.H1_ESG_RTG_VAR,
+                         Variables.RegressionData.H1_CREDIT_RTG_VAR,
                          Variables.ControlVar.SIZE,
-                         Variables.ControlVar.LVG,
+                         Variables.ControlVar.LEV,
                          Variables.ControlVar.ICOV,
                          Variables.ControlVar.OMAR
                      ],
@@ -410,6 +412,6 @@ class AnalyseData:
 
 
 if __name__ == "__main__":
-    # AnalyseData().control()
+    AnalyseData().control()
     # AnalyseData().corr(data=AnalyseData().regression_data_dict['h1_refinitiv'])
     pass

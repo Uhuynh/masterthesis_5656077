@@ -427,7 +427,7 @@ class BloombergAccounting(BloombergESG):
             Variables.Bloomberg.BB_TICKER,
             'month',
             'year',
-            Variables.ControlVar.LVG,
+            Variables.ControlVar.LEV,
             Variables.ControlVar.SIZE,
             Variables.ControlVar.ICOV,
             Variables.ControlVar.OMAR,

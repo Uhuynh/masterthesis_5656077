@@ -105,52 +105,52 @@ class ExtractData(DataRoot):
 
     def extract_regression_data(self):
         """
-        Returns a dictionary contain regression data for each hypothesis,
+        Returns a dictionary contain (winsorized) regression data for each hypothesis,
         separated by each ESG rating providers.
         """
 
         # hypothesis 1 - Refinitiv data
-        h1_refinitiv = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.FILE_NAME),
+        h1_refinitiv = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.H1_WINSORIZED_FILE_NAME),
                                      sheet_name=Variables.RegressionData.H1_REFINITIV_SHEET_NAME)
         h1_refinitiv.rename(columns={
-            Variables.RefinitivESG.TOTAL: Variables.RegressionData.ESG_RTG_VAR,
-            Variables.RefinitivESG.ENV: Variables.RegressionData.ESG_ENV_VAR,
-            Variables.RefinitivESG.SOCIAL: Variables.RegressionData.ESG_SOC_VAR,
-            Variables.RefinitivESG.GOV: Variables.RegressionData.ESG_GOV_VAR,
-            'ordinal_rating': Variables.RegressionData.CREDIT_RTG_VAR
+            Variables.RefinitivESG.TOTAL: Variables.RegressionData.H1_ESG_RTG_VAR,
+            Variables.RefinitivESG.ENV: Variables.RegressionData.H1_ESG_ENV_VAR,
+            Variables.RefinitivESG.SOCIAL: Variables.RegressionData.H1_ESG_SOC_VAR,
+            Variables.RefinitivESG.GOV: Variables.RegressionData.H1_ESG_GOV_VAR,
+            'ordinal_rating': Variables.RegressionData.H1_CREDIT_RTG_VAR
         }, inplace=True)
 
         # hypothesis 1 - S&P Global data
-        h1_spglobal = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.FILE_NAME),
+        h1_spglobal = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.H1_WINSORIZED_FILE_NAME),
                                     sheet_name=Variables.RegressionData.H1_SPGLOBAL_SHEET_NAME)
         h1_spglobal.rename(columns={
-            Variables.SPGlobalESG.TOTAL: Variables.RegressionData.ESG_RTG_VAR,
-            Variables.SPGlobalESG.ENV: Variables.RegressionData.ESG_ENV_VAR,
-            Variables.SPGlobalESG.SOCIAL: Variables.RegressionData.ESG_SOC_VAR,
-            Variables.SPGlobalESG.ECON: Variables.RegressionData.ESG_GOV_VAR,
-            'ordinal_rating': Variables.RegressionData.CREDIT_RTG_VAR
+            Variables.SPGlobalESG.TOTAL: Variables.RegressionData.H1_ESG_RTG_VAR,
+            Variables.SPGlobalESG.ENV: Variables.RegressionData.H1_ESG_ENV_VAR,
+            Variables.SPGlobalESG.SOCIAL: Variables.RegressionData.H1_ESG_SOC_VAR,
+            Variables.SPGlobalESG.ECON: Variables.RegressionData.H1_ESG_GOV_VAR,
+            'ordinal_rating': Variables.RegressionData.H1_CREDIT_RTG_VAR
         }, inplace=True)
 
         # hypothesis 1 - Sustainalytics data
-        h1_sustainalytics = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.FILE_NAME),
+        h1_sustainalytics = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.H1_WINSORIZED_FILE_NAME),
                                           sheet_name=Variables.RegressionData.H1_SUSTAINALYTICS_SHEET_NAME)
         h1_sustainalytics.rename(columns={
-            Variables.SustainalyticsESG.TOTAL: Variables.RegressionData.ESG_RTG_VAR,
-            Variables.SustainalyticsESG.ENV: Variables.RegressionData.ESG_ENV_VAR,
-            Variables.SustainalyticsESG.SOCIAL: Variables.RegressionData.ESG_SOC_VAR,
-            Variables.SustainalyticsESG.GOV: Variables.RegressionData.ESG_GOV_VAR,
-            'ordinal_rating': Variables.RegressionData.CREDIT_RTG_VAR
+            Variables.SustainalyticsESG.TOTAL: Variables.RegressionData.H1_ESG_RTG_VAR,
+            Variables.SustainalyticsESG.ENV: Variables.RegressionData.H1_ESG_ENV_VAR,
+            Variables.SustainalyticsESG.SOCIAL: Variables.RegressionData.H1_ESG_SOC_VAR,
+            Variables.SustainalyticsESG.GOV: Variables.RegressionData.H1_ESG_GOV_VAR,
+            'ordinal_rating': Variables.RegressionData.H1_CREDIT_RTG_VAR
         }, inplace=True)
 
         # hypothesis 2
-        h2 = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.FILE_NAME),
-                           sheet_name=Variables.RegressionData.H2_SHEET_NAME)
+        # h2 = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.FILE_NAME),
+        #                    sheet_name=Variables.RegressionData.H2_SHEET_NAME)
 
         return {
             'h1_refinitiv': h1_refinitiv,
             'h1_spglobal': h1_spglobal,
             'h1_sustainalytics': h1_sustainalytics,
-            'h2': h2
+            # 'h2': h2
         }
 
 
