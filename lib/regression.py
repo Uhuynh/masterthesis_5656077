@@ -76,6 +76,12 @@ class Regression:
         data = data.loc[:, (data != 0).any(axis=0)]  # remove redundant dummies
 
 
+        # quartile check for big companies
+        data = data.loc[data['SIZE'] >= data['SIZE'].quantile(q=0.75)]
+        data = data.loc[:, (data != 0).any(axis=0)]  # remove redundant dummies
+
+
+
 
         # convert credit rating to categorical variable
         rating_type = CategoricalDtype(categories=sorted(data[Variables.RegressionData.H1_CREDIT_RTG_VAR].unique()), ordered=True)

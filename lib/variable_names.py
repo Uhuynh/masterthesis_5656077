@@ -106,3 +106,6 @@ class Variables:
         H2_AVG_ICOV_VAR = 'AVG_ICOV'
         H2_AVG_OMAR_VAR = 'AVG_OMAR'
         H2_LONG_TERM_DUMMY = 'LONG_TERM'
+
+        # h2 alternative model regression variables
+        H2_CREDIT_RTG_YEARLY_CHANGE_VAR = 'CR_CHANGE_YEARLY'

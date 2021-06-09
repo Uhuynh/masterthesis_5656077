@@ -1,13 +1,13 @@
-import pandas as pd
-from datetime import date
 import os
-from pandas.api.types import CategoricalDtype
-from statsmodels.miscmodels.ordinal_model import OrderedModel
-from scipy import stats
-from scipy.stats.mstats import winsorize
+from datetime import date
 
-from lib.helpers import ExtractData, SmallFunction, DataRoot
+import pandas as pd
+from pandas.api.types import CategoricalDtype
+from scipy import stats
+
+from lib.helpers import SmallFunction, DataRoot
 from lib.variable_names import Variables
+from statsmodels.miscmodels.ordinal_model import OrderedModel
 
 
 class PrepareData(DataRoot):
@@ -343,8 +343,13 @@ class PrepareData(DataRoot):
         ####################################################################################
 
         h2 = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.H2_FILE_NAME), sheet_name='h2')
+
         h2 = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.H2_FILE_NAME), sheet_name='h2_main')
 
+        ####################################################################################
+        # separated by firm size
+        new_data = new_data.loc[new_data['AVG_SIZE'] >= new_data['AVG_SIZE'].quantile(q=0.75)]
+        new_data = new_data.loc[:, (new_data != 0).any(axis=0)]  # remove redundant dummies
         ####################################################################################
         # common sample to calculate ESG ratings correlation
         common = h2.loc[
@@ -477,11 +482,11 @@ class PrepareData(DataRoot):
         # category type
         change_type = CategoricalDtype(categories=sorted(new_data[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR].unique()), ordered=True)
         new_data[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR] = new_data[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR].astype(change_type)
+
         upgrade_type = CategoricalDtype(categories=sorted(new_data['upgrade'].unique()), ordered=True)
         new_data['upgrade'] = new_data['upgrade'].astype(upgrade_type)
         downgrade_type = CategoricalDtype(categories=sorted(new_data['downgrade'].unique()), ordered=True)
         new_data['downgrade'] = new_data['downgrade'].astype(downgrade_type)
-
 
 
         # industry breakdown
@@ -509,6 +514,110 @@ class PrepareData(DataRoot):
         res_log = full_mod_log.fit(method='bfgs')
         res_log.summary()
         print(res_log.prsquared)
+
+        # alternative regression model (yearly credit rating change)
+        full_mod_log = OrderedModel(new_data[Variables.RegressionData.H2_CREDIT_RTG_YEARLY_CHANGE_VAR],
+                                    new_data[[
+                                        Variables.RegressionData.H2_ESG_RATED_DUMMY,
+                                        Variables.ControlVar.SIZE,
+                                        Variables.ControlVar.LEV,
+                                        Variables.ControlVar.ICOV,
+                                        Variables.ControlVar.OMAR,
+                                        2007,
+                                        2008,
+                                        2009,
+                                        2010,
+                                        2011,
+                                        2012,
+                                        2013,
+                                        2014,
+                                        2015,
+                                        2016,
+                                        2017,
+                                        2018,
+                                        2019,
+                                        'Energy and Natural Resources', 'Utility', 'AZERBAIJAN',
+                                        'BELGIUM',
+                                        'BRITAIN',
+                                        'CROATIA',
+                                        'CZECH',
+                                        'DENMARK',
+                                        'ESTONIA',
+                                        'FINLAND',
+                                        'FRANCE',
+                                        'GERMANY',
+                                        'GREECE',
+                                        'HUNGARY',
+                                        'ICELAND',
+                                        'IRELAND',
+                                        'ITALY',
+                                        'LUXEMBOURG',
+                                        'NETHERLANDS',
+                                        'NORWAY',
+                                        'POLAND',
+                                        'PORTUGAL',
+                                        'RUSSIA',
+                                        'SLOVAKIA',
+                                        'SLOVENIA',
+                                        'SPAIN',
+                                        'SWEDEN',
+                                        'SWITZERLAND',
+                                        'TURKEY',
+                                        'UKRAINE',
+                                    ]],
+                                    distr='logit')
+        res_log = full_mod_log.fit(method='bfgs')
+        res_log.summary()
+
+        # alternative regression model (monthly credit rating change)
+        full_mod_log = OrderedModel(new_data['CREDIT_RTG_CHANGE'],
+                                    new_data[[
+                                        Variables.RegressionData.H2_ESG_RATED_DUMMY,
+                                        Variables.ControlVar.SIZE,
+                                        Variables.ControlVar.LEV,
+                                        Variables.ControlVar.ICOV,
+                                        Variables.ControlVar.OMAR,
+                                        2007,
+                                        2008,
+                                        2009,
+                                        2010,
+                                        2011,
+                                        2012,
+                                        2013,
+                                        2014,
+                                        2015,
+                                        2016,
+                                        2017,
+                                        2018,
+                                        2019,
+                                        2020,
+                                        'Energy and Natural Resources', 'Utility', 'AZERBAIJAN',
+                                        'BELGIUM',
+                                        'BRITAIN',
+                                        'CROATIA',
+                                        'FINLAND',
+                                        'FRANCE',
+                                        'GERMANY',
+                                        'GREECE',
+                                        'HUNGARY',
+                                        'ICELAND',
+                                        'IRELAND',
+                                        'ITALY',
+                                        'LUXEMBOURG',
+                                        'NETHERLANDS',
+                                        'NORWAY',
+                                        'PORTUGAL',
+                                        'RUSSIA',
+                                        'SLOVAKIA',
+                                        'SPAIN',
+                                        'SWEDEN',
+                                        'SWITZERLAND',
+                                        'TURKEY',
+                                        'UKRAINE'
+                                    ]],
+                                    distr='logit')
+        res_log = full_mod_log.fit(method='bfgs')
+        res_log.summary()
 
         return result
 
