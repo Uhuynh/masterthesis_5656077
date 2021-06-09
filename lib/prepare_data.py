@@ -52,23 +52,23 @@ class PrepareData(DataRoot):
         """
 
         # get industry & country data
-        data = data.merge(self.company_info[[Variables.Bloomberg.BB_TICKER, 'INDUSTRY', 'COUNTRY']],
-                          on=Variables.Bloomberg.BB_TICKER, how='left')
+        data = data.merge(self.company_info[[Variables.BloombergDB.BB_TICKER, 'INDUSTRY', 'COUNTRY']],
+                          on=Variables.BloombergDB.BB_TICKER, how='left')
 
         # merge ESG data with time series from 2006 to 2020, group by company
         result = []
-        for company in data[Variables.Bloomberg.BB_TICKER].unique():
-            df = data.loc[data[Variables.Bloomberg.BB_TICKER] == company]
+        for company in data[Variables.BloombergDB.BB_TICKER].unique():
+            df = data.loc[data[Variables.BloombergDB.BB_TICKER] == company]
             df = self.timerange.merge(df, on=['month', 'year'], how='left')
             result.append(df)
         result = pd.concat(result)
 
         # merge ESG data with populated credit ratings and accounting data
         result = result.merge(self.cleaned_data_dict['populated_sp'],
-                              on=['month', 'year', Variables.Bloomberg.BB_TICKER],
+                              on=['month', 'year', Variables.BloombergDB.BB_TICKER],
                               how='left')
         result = result.merge(self.cleaned_data_dict['control_var'],
-                              on=['month', 'year', Variables.Bloomberg.BB_TICKER],
+                              on=['month', 'year', Variables.BloombergDB.BB_TICKER],
                               how='left')
 
         # drop rows where there is at least 1 NA value
@@ -220,7 +220,7 @@ class PrepareData(DataRoot):
         populated_rtg = populated_rtg.loc[populated_rtg['ordinal_rating'] != 0]
         populated_rtg_yearly = []
         for company in populated_rtg['BB_TICKER'].unique():
-            df = populated_rtg.loc[populated_rtg[Variables.Bloomberg.BB_TICKER] == company]
+            df = populated_rtg.loc[populated_rtg[Variables.BloombergDB.BB_TICKER] == company]
             for year in df['year'].unique():
                 df_year = df.loc[df['year'] == year]
                 max_date = max(df_year['month'])
@@ -231,8 +231,8 @@ class PrepareData(DataRoot):
 
         # calculate credit rating changes
         result = []
-        for company in populated_rtg_yearly[Variables.Bloomberg.BB_TICKER].unique():
-            df = populated_rtg_yearly.loc[populated_rtg_yearly[Variables.Bloomberg.BB_TICKER] == company]
+        for company in populated_rtg_yearly[Variables.BloombergDB.BB_TICKER].unique():
+            df = populated_rtg_yearly.loc[populated_rtg_yearly[Variables.BloombergDB.BB_TICKER] == company]
             df['CREDIT_RTG_CHANGE'] = df['ordinal_rating'].diff(periods=1)
             df['CREDIT_RTG_CHANGE'] = df['CREDIT_RTG_CHANGE'].shift(periods=-1)
             result.append(df)
@@ -242,25 +242,25 @@ class PrepareData(DataRoot):
         accounting = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.CleanedData.FILE_NAME),
                                    sheet_name=Variables.CleanedData.ACCOUNTING_SHEET_NAME)
         accounting = accounting[[
-            Variables.Bloomberg.BB_TICKER,
+            Variables.BloombergDB.BB_TICKER,
             Variables.ControlVar.SIZE,
             Variables.ControlVar.LEV,
             Variables.ControlVar.ICOV,
             Variables.ControlVar.OMAR,
             'year',
         ]]
-        result = result.merge(accounting, on=[Variables.Bloomberg.BB_TICKER, 'year'], how='left')
+        result = result.merge(accounting, on=[Variables.BloombergDB.BB_TICKER, 'year'], how='left')
 
         # merge with ESG Refinitiv
         esg_refinitiv = self.cleaned_data_dict['refinitiv']
         esg_refinitiv = esg_refinitiv[[Variables.RefinitivESG.TOTAL,
-                                       Variables.Bloomberg.BB_TICKER,
+                                       Variables.BloombergDB.BB_TICKER,
                                        'month',
                                        'year',
                                        'Dates']]
         esg_refinitiv_yearly = []
         for company in esg_refinitiv['BB_TICKER'].unique():
-            df = esg_refinitiv.loc[esg_refinitiv[Variables.Bloomberg.BB_TICKER] == company]
+            df = esg_refinitiv.loc[esg_refinitiv[Variables.BloombergDB.BB_TICKER] == company]
             for year in df['year'].unique():
                 df_year = df.loc[df['year'] == year]
                 max_date = max(df_year['Dates'])
@@ -269,17 +269,17 @@ class PrepareData(DataRoot):
         esg_refinitiv_yearly = pd.concat(esg_refinitiv_yearly)
         esg_refinitiv_yearly = esg_refinitiv_yearly.drop(columns=['month', 'Dates'])
 
-        result = result.merge(esg_refinitiv_yearly, on=[Variables.Bloomberg.BB_TICKER, 'year'], how='left')
+        result = result.merge(esg_refinitiv_yearly, on=[Variables.BloombergDB.BB_TICKER, 'year'], how='left')
 
         # merge with ESG S&P Global
         esg_spglobal = self.cleaned_data_dict['spglobal'][[Variables.SPGlobalESG.TOTAL,
-                                                           Variables.Bloomberg.BB_TICKER,
+                                                           Variables.BloombergDB.BB_TICKER,
                                                            'Dates',
                                                            'year'
                                                            ]]
         esg_spglobal_yearly = []
         for company in esg_spglobal['BB_TICKER'].unique():
-            df = esg_spglobal.loc[esg_spglobal[Variables.Bloomberg.BB_TICKER] == company]
+            df = esg_spglobal.loc[esg_spglobal[Variables.BloombergDB.BB_TICKER] == company]
             for year in df['year'].unique():
                 df_year = df.loc[df['year'] == year]
                 max_date = max(df_year['Dates'])
@@ -288,17 +288,17 @@ class PrepareData(DataRoot):
         esg_spglobal_yearly = pd.concat(esg_spglobal_yearly)
         esg_spglobal_yearly = esg_spglobal_yearly.drop(columns=['Dates'])
 
-        result = result.merge(esg_spglobal_yearly, on=[Variables.Bloomberg.BB_TICKER, 'year'], how='left')
+        result = result.merge(esg_spglobal_yearly, on=[Variables.BloombergDB.BB_TICKER, 'year'], how='left')
 
         # merge with ESG Sustainalytics
         esg_sustainalytics = self.cleaned_data_dict['sustainalytics'][[Variables.SustainalyticsESG.TOTAL,
-                                                                       Variables.Bloomberg.BB_TICKER,
+                                                                       Variables.BloombergDB.BB_TICKER,
                                                                        'Dates',
                                                                        'year'
                                                                        ]]
         esg_sustainalytics_yearly = []
         for company in esg_sustainalytics['BB_TICKER'].unique():
-            df = esg_sustainalytics.loc[esg_sustainalytics[Variables.Bloomberg.BB_TICKER] == company]
+            df = esg_sustainalytics.loc[esg_sustainalytics[Variables.BloombergDB.BB_TICKER] == company]
             for year in df['year'].unique():
                 df_year = df.loc[df['year'] == year]
                 max_date = max(df_year['Dates'])
@@ -307,15 +307,15 @@ class PrepareData(DataRoot):
         esg_sustainalytics_yearly = pd.concat(esg_sustainalytics_yearly)
         esg_sustainalytics_yearly = esg_sustainalytics_yearly.drop(columns=['Dates'])
 
-        result = result.merge(esg_sustainalytics_yearly, on=[Variables.Bloomberg.BB_TICKER, 'year'], how='left')
+        result = result.merge(esg_sustainalytics_yearly, on=[Variables.BloombergDB.BB_TICKER, 'year'], how='left')
 
         # get industry & country data
-        result = result.merge(self.company_info[[Variables.Bloomberg.BB_TICKER, 'INDUSTRY', 'COUNTRY']],
-                              on=Variables.Bloomberg.BB_TICKER, how='left')
+        result = result.merge(self.company_info[[Variables.BloombergDB.BB_TICKER, 'INDUSTRY', 'COUNTRY']],
+                              on=Variables.BloombergDB.BB_TICKER, how='left')
 
         # remove NAs
         result = result.loc[
-            (result[Variables.Bloomberg.BB_TICKER].notnull()) &
+            (result[Variables.BloombergDB.BB_TICKER].notnull()) &
             (result[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR].notnull()) &
             (result[Variables.ControlVar.SIZE].notnull()) &
             (result[Variables.ControlVar.LEV].notnull()) &
@@ -377,8 +377,8 @@ class PrepareData(DataRoot):
         ####################################################################################
         # Number of changes
         new_data = []
-        for company in h2[Variables.Bloomberg.BB_TICKER].unique():
-            df = h2.loc[h2[Variables.Bloomberg.BB_TICKER] == company]
+        for company in h2[Variables.BloombergDB.BB_TICKER].unique():
+            df = h2.loc[h2[Variables.BloombergDB.BB_TICKER] == company]
             df = df.loc[df['year'] <= 2016]
             if not df.empty:
                 if len(df[Variables.RegressionData.H2_ESG_RATED_DUMMY].unique()) > 1:
@@ -395,7 +395,7 @@ class PrepareData(DataRoot):
                     Variables.RegressionData.H2_AVG_OMAR_VAR: df['OPER_MARGIN'].mean(),
                     'INDUSTRY': df['INDUSTRY'].unique().item(),
                     'COUNTRY': df['COUNTRY'].unique().item(),
-                    Variables.Bloomberg.BB_TICKER: company
+                    Variables.BloombergDB.BB_TICKER: company
                 }
                 df_summary = pd.DataFrame.from_dict([data_dict])
                 new_data.append(df_summary)

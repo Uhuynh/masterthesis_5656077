@@ -1,26 +1,42 @@
-
 class Variables:
     """
-    Contains variable and file names that are frequently re-used within the project.
+    Contains variables and file names that are frequently re-used within the project.
     """
 
-    class Bloomberg:
+    class BloombergDB:
+        """
+        File names of raw data as well as common mnemonic field names
+        downloaded from Bloomberg Terminal database.
+        """
 
-        RAW_DATA_FILE_NAME = 'bloomberg_raw.xlsx'
-        ESG_SHEET_NAME = 'esg'
-        COMPANY_INFO_SHEET_NAME = 'company_info'
-        SP_RATING_CHANGES_SHEET_NAME = 'sp_rating_changes'
-        ACCOUNTING_SHEET_NAME = 'accounting'
-        BB_TICKER = 'BB_TICKER'
+        class FILES:
+
+            RAW_DATA_FILE_NAME = 'bloomberg_raw.xlsx'
+            ESG_SHEET_NAME = 'esg'
+            COMPANY_INFO_SHEET_NAME = 'company_info'
+            SP_RATING_CHANGES_SHEET_NAME = 'sp_rating_changes'
+            ACCOUNTING_DATA_SHEET_NAME = 'accounting'
+
+        class FIELDS:
+
+            BB_TICKER = 'BB_TICKER'
 
 
-    class Refinitiv:
+    class RefinitivDB:
+        """
+        File names of raw data downloaded from Refinitiv DataStream.
+        """
 
         RAW_DATA_FILE_NAME = 'refinitiv_raw.xlsx'
         ESG_SHEET_NAME = 'esg'
 
 
     class SupervisorData:
+        """
+        File names of raw data received from supervisor (Ms. Zorka),
+        which includes data about S&P credit ratings of European firms
+        from 1980 to 2015.
+        """
 
         FILE_NAME = 'credit_rating_Zorka.xlsx'
         SHEET_NAME = 'credit_rating_Zorka'

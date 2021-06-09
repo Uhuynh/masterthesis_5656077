@@ -52,8 +52,8 @@ class Regression:
 
         # lagged 12 months (= 1 year)
         test = []
-        for company in data[Variables.Bloomberg.BB_TICKER].unique():
-            df = data.loc[data[Variables.Bloomberg.BB_TICKER] == company]
+        for company in data[Variables.BloombergDB.BB_TICKER].unique():
+            df = data.loc[data[Variables.BloombergDB.BB_TICKER] == company]
             df[Variables.RegressionData.H1_ESG_RTG_VAR] = df[Variables.RegressionData.H1_ESG_RTG_VAR].shift(periods=24)
             df[Variables.ControlVar.SIZE] = df[Variables.ControlVar.SIZE].shift(periods=12)
             df[Variables.ControlVar.LEV] = df[Variables.ControlVar.LEV].shift(periods=12)

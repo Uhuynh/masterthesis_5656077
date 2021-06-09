@@ -39,8 +39,8 @@ class BloombergESG(CleanBase):
         super().__init__()
 
     def control(self):
-        data = self.extract_data(file_name=Variables.Bloomberg.RAW_DATA_FILE_NAME,
-                                 sheet_name=Variables.Bloomberg.ESG_SHEET_NAME)
+        data = self.extract_data(file_name=Variables.BloombergDB.RAW_DATA_FILE_NAME,
+                                 sheet_name=Variables.BloombergDB.ESG_SHEET_NAME)
         data_t = self.transform_data(data)
         self.load_data(transformed_data=data_t,
                        file_name=Variables.CleanedData.FILE_NAME,
@@ -63,20 +63,20 @@ class BloombergESG(CleanBase):
         temp = temp.set_index(['Dates'], append=True)
         temp = temp.reset_index()
         temp = temp.rename(columns={
-            temp.columns[0]: Variables.Bloomberg.BB_TICKER,
+            temp.columns[0]: Variables.BloombergDB.BB_TICKER,
             temp.columns[1]: 'variable'})
 
-        data_t = temp.melt(id_vars=[Variables.Bloomberg.BB_TICKER, 'variable'], var_name='Dates')
+        data_t = temp.melt(id_vars=[Variables.BloombergDB.BB_TICKER, 'variable'], var_name='Dates')
         data_t = pd.pivot_table(
             data_t,
             values='value',
-            index=[Variables.Bloomberg.BB_TICKER, 'Dates'],
+            index=[Variables.BloombergDB.BB_TICKER, 'Dates'],
             columns=['variable'],
             aggfunc='first'
         )
         data_t = data_t.reset_index()
         data_t = data_t.rename(columns={
-            data_t.columns[0]: Variables.Bloomberg.BB_TICKER,
+            data_t.columns[0]: Variables.BloombergDB.BB_TICKER,
             data_t.columns[1]: 'Dates'
         })
 
@@ -88,7 +88,7 @@ class BloombergESG(CleanBase):
         data_t['Dates'] = data_t['Dates'].dt.date
 
         # sort values by dates
-        data_t = data_t.sort_values([Variables.Bloomberg.BB_TICKER, 'Dates'], ascending=True)
+        data_t = data_t.sort_values([Variables.BloombergDB.BB_TICKER, 'Dates'], ascending=True)
 
         return data_t
 
@@ -102,8 +102,8 @@ class RefinitivESG(CleanBase):
         super().__init__()
 
     def control(self):
-        data = self.extract_data(file_name=Variables.Refinitiv.RAW_DATA_FILE_NAME,
-                                 sheet_name=Variables.Refinitiv.ESG_SHEET_NAME)
+        data = self.extract_data(file_name=Variables.RefinitivDB.RAW_DATA_FILE_NAME,
+                                 sheet_name=Variables.RefinitivDB.ESG_SHEET_NAME)
         data_t = self.transform_data(data)
         self.load_data(transformed_data=data_t,
                        file_name=Variables.CleanedData.FILE_NAME,
@@ -159,14 +159,14 @@ class RefinitivESG(CleanBase):
         data_t = data_t.rename(columns={'company_isin': 'ID_ISIN'})
 
         # merge with 'company_info.xlsx' to get BB_TICKER
-        data_t = data_t.merge(self.company_info[[Variables.Bloomberg.BB_TICKER, 'ID_ISIN']], on='ID_ISIN', how='outer')
+        data_t = data_t.merge(self.company_info[[Variables.BloombergDB.BB_TICKER, 'ID_ISIN']], on='ID_ISIN', how='outer')
         data_t = data_t.loc[data_t['Dates'].notnull()]
 
         # exclude data before 2006
         data_t = data_t.loc[data_t['Dates'] > date(2005, 12, 31)].reset_index(drop=True)
 
         # exclude data that are not in selected companies sample
-        data_t = data_t.loc[data_t[Variables.Bloomberg.BB_TICKER].notnull()]
+        data_t = data_t.loc[data_t[Variables.BloombergDB.BB_TICKER].notnull()]
 
         return data_t
 
@@ -213,8 +213,8 @@ class BloombergCreditRtg(CleanBase):
         supervisor_data_c = self.clean_supervisor_data(supervisor_data)
 
         # get Bloomberg data
-        bb_data = self.extract_data(file_name=Variables.Bloomberg.RAW_DATA_FILE_NAME,
-                                    sheet_name=Variables.Bloomberg.SP_RATING_CHANGES_SHEET_NAME)
+        bb_data = self.extract_data(file_name=Variables.BloombergDB.RAW_DATA_FILE_NAME,
+                                    sheet_name=Variables.BloombergDB.SP_RATING_CHANGES_SHEET_NAME)
 
         # clean Bloomberg data
         bb_data_c = self.clean_bb_data(bb_data)
@@ -246,7 +246,7 @@ class BloombergCreditRtg(CleanBase):
         """
 
         # merge credit ratings (from Zorka) to list of selected companies on 'company_id'
-        data = self.company_info[['companyid', Variables.Bloomberg.BB_TICKER]].merge(
+        data = self.company_info[['companyid', Variables.BloombergDB.BB_TICKER]].merge(
             supervisor_data[['companyid', 'rating_date', 'rating']],
             on='companyid',
             how='left')
@@ -272,7 +272,7 @@ class BloombergCreditRtg(CleanBase):
         bb_data = bb_data[['Date', 'rating', 'Security Name']]
 
         # rename columns
-        bb_data.rename(columns={'Date': 'rating_date', 'Security Name': Variables.Bloomberg.BB_TICKER}, inplace=True)
+        bb_data.rename(columns={'Date': 'rating_date', 'Security Name': Variables.BloombergDB.BB_TICKER}, inplace=True)
 
         # convert 'rating_date' from datetime to date
         bb_data['rating_date'] = pd.to_datetime(bb_data['rating_date']).dt.date
@@ -290,9 +290,9 @@ class BloombergCreditRtg(CleanBase):
         # merge
         data = supervisor_data_c.merge(bb_data_c,
                                        how='outer',
-                                       on=[Variables.Bloomberg.BB_TICKER, 'rating_date', 'rating'])
+                                       on=[Variables.BloombergDB.BB_TICKER, 'rating_date', 'rating'])
 
-        data = data.sort_values([Variables.Bloomberg.BB_TICKER, 'rating_date'], ascending=True)
+        data = data.sort_values([Variables.BloombergDB.BB_TICKER, 'rating_date'], ascending=True)
 
         # drop duplicates and unnecessary column
         data = data.drop(columns=['companyid'])
@@ -371,8 +371,8 @@ class BloombergCreditRtg(CleanBase):
 
         # populate (this also excludes data after 2020)
         populated_rtg = []
-        for company in rating[Variables.Bloomberg.BB_TICKER].unique():
-            df = rating.loc[rating[Variables.Bloomberg.BB_TICKER] == company]
+        for company in rating[Variables.BloombergDB.BB_TICKER].unique():
+            df = rating.loc[rating[Variables.BloombergDB.BB_TICKER] == company]
             df = series.merge(df, on=['month', 'year'], how='outer')
             df = df.fillna(method='ffill')  # propagate last valid observation forward to next valid
             populated_rtg.append(df)
@@ -393,8 +393,8 @@ class BloombergAccounting(BloombergESG):
         super().__init__()
 
     def control(self):
-        data = self.extract_data(file_name=Variables.Bloomberg.RAW_DATA_FILE_NAME,
-                                 sheet_name=Variables.Bloomberg.ACCOUNTING_SHEET_NAME)
+        data = self.extract_data(file_name=Variables.BloombergDB.RAW_DATA_FILE_NAME,
+                                 sheet_name=Variables.BloombergDB.ACCOUNTING_SHEET_NAME)
         data_t = self.transform_data(data)
         self.load_data(transformed_data=data_t, file_name=Variables.CleanedData.FILE_NAME,
                        sheet_name=Variables.CleanedData.ACCOUNTING_SHEET_NAME)
@@ -424,7 +424,7 @@ class BloombergAccounting(BloombergESG):
         """
         series = SmallFunction.generate_series(start_dt=date(2006, 1, 1), end_dt=date(2020, 12, 31))
         data = data[[
-            Variables.Bloomberg.BB_TICKER,
+            Variables.BloombergDB.BB_TICKER,
             'month',
             'year',
             Variables.ControlVar.LEV,
@@ -433,8 +433,8 @@ class BloombergAccounting(BloombergESG):
             Variables.ControlVar.OMAR,
         ]]
         populated = []
-        for company in data[Variables.Bloomberg.BB_TICKER].unique():
-            df = data.loc[data[Variables.Bloomberg.BB_TICKER] == company]
+        for company in data[Variables.BloombergDB.BB_TICKER].unique():
+            df = data.loc[data[Variables.BloombergDB.BB_TICKER] == company]
             min_year = min(df['year'])
             max_year = max(df['year'])
             df = series.merge(df, on=['month', 'year'], how='left')
