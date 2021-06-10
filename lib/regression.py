@@ -55,10 +55,10 @@ class Regression:
         for company in data[Variables.BloombergDB.BB_TICKER].unique():
             df = data.loc[data[Variables.BloombergDB.BB_TICKER] == company]
             df[Variables.RegressionData.H1_ESG_RTG_VAR] = df[Variables.RegressionData.H1_ESG_RTG_VAR].shift(periods=24)
-            df[Variables.ControlVar.SIZE] = df[Variables.ControlVar.SIZE].shift(periods=12)
-            df[Variables.ControlVar.LEV] = df[Variables.ControlVar.LEV].shift(periods=12)
-            df[Variables.ControlVar.ICOV] = df[Variables.ControlVar.ICOV].shift(periods=12)
-            df[Variables.ControlVar.OMAR] = df[Variables.ControlVar.OMAR].shift(periods=12)
+            df[Variables.ControlVar.H1_SIZE] = df[Variables.ControlVar.H1_SIZE].shift(periods=12)
+            df[Variables.ControlVar.H1_LEV] = df[Variables.ControlVar.H1_LEV].shift(periods=12)
+            df[Variables.ControlVar.H1_ICOV] = df[Variables.ControlVar.H1_ICOV].shift(periods=12)
+            df[Variables.ControlVar.H1_OMAR] = df[Variables.ControlVar.H1_OMAR].shift(periods=12)
             test.append(df)
         test = pd.concat(test)
         test = test.dropna(how='any')
@@ -114,10 +114,10 @@ class Regression:
         # full model (2)
         full_mod_log = OrderedModel(data[Variables.RegressionData.H1_CREDIT_RTG_VAR],
                                     data[[Variables.RegressionData.H1_ESG_RTG_VAR,
-                                          Variables.ControlVar.SIZE,
-                                          Variables.ControlVar.LEV,
-                                          Variables.ControlVar.ICOV,
-                                          Variables.ControlVar.OMAR,
+                                          Variables.ControlVar.H1_SIZE,
+                                          Variables.ControlVar.H1_LEV,
+                                          Variables.ControlVar.H1_ICOV,
+                                          Variables.ControlVar.H1_OMAR,
                                           2007, 2008, 2009, 2010, 2011, 2012, 2013,
                                           2014, 2015, 2016, 2017, 2018, 2019,
                                           'Energy and Natural Resources', 'Utility',
@@ -158,10 +158,10 @@ class Regression:
             rating_type)
 
         # winsorize all control variables
-        data[Variables.ControlVar.ICOV] = winsorize(data[Variables.ControlVar.ICOV], limits=[0.01, 0.01])
-        data[Variables.ControlVar.OMAR] = winsorize(data[Variables.ControlVar.OMAR], limits=[0.01, 0.01])
-        data[Variables.ControlVar.SIZE] = winsorize(data[Variables.ControlVar.SIZE], limits=[0.01, 0.01])
-        data[Variables.ControlVar.LEV] = winsorize(data[Variables.ControlVar.LEV], limits=[0.01, 0.01])
+        data[Variables.ControlVar.H1_ICOV] = winsorize(data[Variables.ControlVar.H1_ICOV], limits=[0.01, 0.01])
+        data[Variables.ControlVar.H1_OMAR] = winsorize(data[Variables.ControlVar.H1_OMAR], limits=[0.01, 0.01])
+        data[Variables.ControlVar.H1_SIZE] = winsorize(data[Variables.ControlVar.H1_SIZE], limits=[0.01, 0.01])
+        data[Variables.ControlVar.H1_LEV] = winsorize(data[Variables.ControlVar.H1_LEV], limits=[0.01, 0.01])
 
         # ordered logit regression
 
@@ -202,10 +202,10 @@ class Regression:
         # full model (2)
         full_mod_log = OrderedModel(data[Variables.RegressionData.H1_CREDIT_RTG_VAR],
                                     data[[Variables.RegressionData.H1_ESG_RTG_VAR,
-                                          Variables.ControlVar.SIZE,
-                                          Variables.ControlVar.LEV,
-                                          Variables.ControlVar.ICOV,
-                                          Variables.ControlVar.OMAR,
+                                          Variables.ControlVar.H1_SIZE,
+                                          Variables.ControlVar.H1_LEV,
+                                          Variables.ControlVar.H1_ICOV,
+                                          Variables.ControlVar.H1_OMAR,
                                           2017,
                                           2018,
                                           2019,
@@ -264,10 +264,10 @@ class Regression:
             rating_type)
 
         # winsorize all control variables
-        data[Variables.ControlVar.ICOV] = winsorize(data[Variables.ControlVar.ICOV], limits=[0.01, 0.01])
-        data[Variables.ControlVar.OMAR] = winsorize(data[Variables.ControlVar.OMAR], limits=[0.01, 0.01])
-        data[Variables.ControlVar.SIZE] = winsorize(data[Variables.ControlVar.SIZE], limits=[0.01, 0.01])
-        data[Variables.ControlVar.LEV] = winsorize(data[Variables.ControlVar.LEV], limits=[0.01, 0.01])
+        data[Variables.ControlVar.H1_ICOV] = winsorize(data[Variables.ControlVar.H1_ICOV], limits=[0.01, 0.01])
+        data[Variables.ControlVar.H1_OMAR] = winsorize(data[Variables.ControlVar.H1_OMAR], limits=[0.01, 0.01])
+        data[Variables.ControlVar.H1_SIZE] = winsorize(data[Variables.ControlVar.H1_SIZE], limits=[0.01, 0.01])
+        data[Variables.ControlVar.H1_LEV] = winsorize(data[Variables.ControlVar.H1_LEV], limits=[0.01, 0.01])
 
         # ordered logit regression
 
@@ -307,10 +307,10 @@ class Regression:
         # full model (2)
         full_mod_log = OrderedModel(data[Variables.RegressionData.H1_CREDIT_RTG_VAR],
                                     data[[Variables.RegressionData.H1_ESG_RTG_VAR,
-                                          Variables.ControlVar.SIZE,
-                                          Variables.ControlVar.LEV,
-                                          Variables.ControlVar.ICOV,
-                                          Variables.ControlVar.OMAR,
+                                          Variables.ControlVar.H1_SIZE,
+                                          Variables.ControlVar.H1_LEV,
+                                          Variables.ControlVar.H1_ICOV,
+                                          Variables.ControlVar.H1_OMAR,
                                           2015,
                                           2016,
                                           2017,
@@ -406,10 +406,10 @@ class Regression:
         # full model (2)
         full_mod_log = OrderedModel(data[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR],
                                     data[[Variables.RegressionData.H2_ESG_RATED_DUMMY,
-                                          Variables.ControlVar.SIZE,
-                                          Variables.ControlVar.LEV,
-                                          Variables.ControlVar.ICOV,
-                                          Variables.ControlVar.OMAR,
+                                          Variables.ControlVar.H1_SIZE,
+                                          Variables.ControlVar.H1_LEV,
+                                          Variables.ControlVar.H1_ICOV,
+                                          Variables.ControlVar.H1_OMAR,
                                           2007,
                                           2008,
                                           2009,

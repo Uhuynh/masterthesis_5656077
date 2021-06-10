@@ -1,6 +1,10 @@
 class Variables:
     """
     Contains variables and file names that are frequently re-used within the project.
+
+    Reason for this class: if we want to change / add a variable, we only need to do
+    once within this class, which helps us avoid using literal strings repeatedly
+    in many places.
     """
 
     class BloombergDB:
@@ -38,11 +42,14 @@ class Variables:
         from 1980 to 2015.
         """
 
-        FILE_NAME = 'credit_rating_Zorka.xlsx'
-        SHEET_NAME = 'credit_rating_Zorka'
+        FILE_NAME = 'credit_rating_supervisors.xlsx'
+        SHEET_NAME = 'credit_rating'
 
 
     class RefinitivESG:
+        """
+        ESG fields mnemonic of Refinitiv.
+        """
 
         GOV = 'CGSCORE'
         ENV = 'ENSCORE'
@@ -51,6 +58,9 @@ class Variables:
 
 
     class SPGlobalESG:
+        """
+        ESG fields mnemonic of S&P Global (formerly RobecoSAM).
+        """
 
         ECON = 'ROBECOSAM_ECON_DIMENSION_RANK'
         ENV = 'ROBECOSAM_ENV_DIMENSION_RANK'
@@ -59,6 +69,9 @@ class Variables:
 
 
     class SustainalyticsESG:
+        """
+        ESG fields mnemonic of Sustainalytics.
+        """
 
         ENV = 'SUSTAINALYTICS_ENVIRONMENT_PCT'
         GOV = 'SUSTAINALYTICS_GOVERNANCE_PCT'
@@ -67,19 +80,17 @@ class Variables:
 
 
     class SPCreditRtg:
+        """
+        Fields mnemonic of S&P credit ratings.
+        """
 
         LT_LOCAL_ISSUER = 'LT Local Issuer Credit'
 
 
-    class ControlVar:
-
-        SIZE = 'SIZE'
-        LEV = 'LEVERAGE'
-        ICOV = 'INTEREST_COVERAGE_RATIO'
-        OMAR = 'OPER_MARGIN'
-
-
     class CleanedData:
+        """
+        File names of cleaned data.
+        """
 
         FILE_NAME = 'cleaned_data.xlsx'
         BLOOMBERG_ESG_SHEET_NAME = 'esg_bb'
@@ -91,37 +102,73 @@ class Variables:
 
 
     class RegressionData:
+        """
+        File and variables names (of both hypotheses) that will be used in the regression.
+        """
 
-        # Industries
-        INDUSTRY_1 = 'Aerospace/Automotive/Capital Goods/Metal'
-        INDUSTRY_2 = 'Energy and Natural Resources'
-        INDUSTRY_3 = 'Utility'
+        class INDUSTRY:
+            """
+            Fields mnemonic of three chosen industries in the sample
+            """
+            INDUSTRY_1 = 'Aerospace/Automotive/Capital Goods/Metal'
+            INDUSTRY_2 = 'Energy and Natural Resources'
+            INDUSTRY_3 = 'Utility'
 
-        # H1 file names
-        H1_FILE_NAME = 'h1_regression_data.xlsx'
-        H1_WINSORIZED_FILE_NAME = 'h1_regression_data_winsorized.xlsx'
-        H1_SUSTAINALYTICS_SHEET_NAME = 'h1_sustainalytics'
-        H1_REFINITIV_SHEET_NAME = 'h1_refinitiv'
-        H1_SPGLOBAL_SHEET_NAME = 'h1_spglobal'
+        class FILES:
+            """
+            File names (of both hypotheses) that will be used in the regression
+            """
 
-        # H2 file names
-        H2_FILE_NAME = 'h2_regression_data.xlsx'
+            # H1 file names
+            H1_FILE_NAME = 'h1_regression_data.xlsx'
+            H1_WINSORIZED_FILE_NAME = 'h1_regression_data_winsorized.xlsx'
+            H1_SUSTAINALYTICS_SHEET_NAME = 'h1_sustainalytics'
+            H1_REFINITIV_SHEET_NAME = 'h1_refinitiv'
+            H1_SPGLOBAL_SHEET_NAME = 'h1_spglobal'
 
-        # hypothesis 1 regression variables
-        H1_ESG_RTG_VAR = 'ESG_RTG'
-        H1_ESG_ENV_VAR = 'ESG_E'
-        H1_ESG_SOC_VAR = 'ESG_S'
-        H1_ESG_GOV_VAR = 'ESG_G'
-        H1_CREDIT_RTG_VAR = 'CREDIT_RTG'
+            # H2 file names
+            H2_FILE_NAME = 'h2_regression_data.xlsx'
 
-        # hypothesis 2 regression variables
-        H2_CREDIT_RTG_CHANGE_VAR = 'CR_CHANGE'
-        H2_ESG_RATED_DUMMY = 'ESG_RATED'
-        H2_AVG_SIZE_VAR = 'AVG_SIZE'
-        H2_AVG_LEV_VAR = 'AVG_LEV'
-        H2_AVG_ICOV_VAR = 'AVG_ICOV'
-        H2_AVG_OMAR_VAR = 'AVG_OMAR'
-        H2_LONG_TERM_DUMMY = 'LONG_TERM'
+        class DependentVar:
+            """
+            Names of dependent variables (of both hypotheses) that will be used in the regression
+                - H1: hypothesis 1
+                - H2: hypothesis 2
+            """
 
-        # h2 alternative model regression variables
-        H2_CREDIT_RTG_YEARLY_CHANGE_VAR = 'CR_CHANGE_YEARLY'
+            H1_CREDIT_RTG_VAR = 'CREDIT_RTG'
+            H2_CREDIT_RTG_CHANGE_VAR = 'CR_CHANGE'
+            H2_MONTHLY_CREDIT_RTG_CHANGE_VAR = 'CR_CHANGE_M'
+            H2_YEARLY_CREDIT_RTG_CHANGE_VAR = 'CR_CHANGE_Y'
+
+        class IndependentVar:
+            """
+            Names of independent variables (of both hypotheses) that will be used in the regression
+                - H1: hypothesis 1
+                - H2: hypothesis 2
+            """
+
+            H1_ESG_RTG_VAR = 'ESG_RTG'
+            H1_ESG_ENV_VAR = 'ESG_E'
+            H1_ESG_SOC_VAR = 'ESG_S'
+            H1_ESG_GOV_VAR = 'ESG_G'
+
+            H2_ESG_RATED_DUMMY = 'ESG_RATED'
+
+        class ControlVar:
+            """
+            Fields mnemonic of four financial control variables
+                - H1: hypothesis 1
+                - H2: hypothesis 2
+            """
+
+            H1_SIZE = 'SIZE'
+            H1_LEV = 'LEVERAGE'
+            H1_ICOV = 'INTEREST_COVERAGE_RATIO'
+            H1_OMAR = 'OPER_MARGIN'
+
+            H2_AVG_SIZE_VAR = 'AVG_SIZE'
+            H2_AVG_LEV_VAR = 'AVG_LEV'
+            H2_AVG_ICOV_VAR = 'AVG_ICOV'
+            H2_AVG_OMAR_VAR = 'AVG_OMAR'
+            H2_LONG_TERM_DUMMY = 'LONG_TERM'

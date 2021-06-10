@@ -243,10 +243,10 @@ class PrepareData(DataRoot):
                                    sheet_name=Variables.CleanedData.ACCOUNTING_SHEET_NAME)
         accounting = accounting[[
             Variables.BloombergDB.BB_TICKER,
-            Variables.ControlVar.SIZE,
-            Variables.ControlVar.LEV,
-            Variables.ControlVar.ICOV,
-            Variables.ControlVar.OMAR,
+            Variables.ControlVar.H1_SIZE,
+            Variables.ControlVar.H1_LEV,
+            Variables.ControlVar.H1_ICOV,
+            Variables.ControlVar.H1_OMAR,
             'year',
         ]]
         result = result.merge(accounting, on=[Variables.BloombergDB.BB_TICKER, 'year'], how='left')
@@ -317,10 +317,10 @@ class PrepareData(DataRoot):
         result = result.loc[
             (result[Variables.BloombergDB.BB_TICKER].notnull()) &
             (result[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR].notnull()) &
-            (result[Variables.ControlVar.SIZE].notnull()) &
-            (result[Variables.ControlVar.LEV].notnull()) &
-            (result[Variables.ControlVar.ICOV].notnull()) &
-            (result[Variables.ControlVar.OMAR].notnull()) &
+            (result[Variables.ControlVar.H1_SIZE].notnull()) &
+            (result[Variables.ControlVar.H1_LEV].notnull()) &
+            (result[Variables.ControlVar.H1_ICOV].notnull()) &
+            (result[Variables.ControlVar.H1_OMAR].notnull()) &
             (result['INDUSTRY'].notnull()) &
             (result['COUNTRY'].notnull())
             ]
@@ -519,10 +519,10 @@ class PrepareData(DataRoot):
         full_mod_log = OrderedModel(new_data[Variables.RegressionData.H2_CREDIT_RTG_YEARLY_CHANGE_VAR],
                                     new_data[[
                                         Variables.RegressionData.H2_ESG_RATED_DUMMY,
-                                        Variables.ControlVar.SIZE,
-                                        Variables.ControlVar.LEV,
-                                        Variables.ControlVar.ICOV,
-                                        Variables.ControlVar.OMAR,
+                                        Variables.ControlVar.H1_SIZE,
+                                        Variables.ControlVar.H1_LEV,
+                                        Variables.ControlVar.H1_ICOV,
+                                        Variables.ControlVar.H1_OMAR,
                                         2007,
                                         2008,
                                         2009,
@@ -573,10 +573,10 @@ class PrepareData(DataRoot):
         full_mod_log = OrderedModel(new_data['CREDIT_RTG_CHANGE'],
                                     new_data[[
                                         Variables.RegressionData.H2_ESG_RATED_DUMMY,
-                                        Variables.ControlVar.SIZE,
-                                        Variables.ControlVar.LEV,
-                                        Variables.ControlVar.ICOV,
-                                        Variables.ControlVar.OMAR,
+                                        Variables.ControlVar.H1_SIZE,
+                                        Variables.ControlVar.H1_LEV,
+                                        Variables.ControlVar.H1_ICOV,
+                                        Variables.ControlVar.H1_OMAR,
                                         2007,
                                         2008,
                                         2009,

@@ -427,10 +427,10 @@ class BloombergAccounting(BloombergESG):
             Variables.BloombergDB.BB_TICKER,
             'month',
             'year',
-            Variables.ControlVar.LEV,
-            Variables.ControlVar.SIZE,
-            Variables.ControlVar.ICOV,
-            Variables.ControlVar.OMAR,
+            Variables.ControlVar.H1_LEV,
+            Variables.ControlVar.H1_SIZE,
+            Variables.ControlVar.H1_ICOV,
+            Variables.ControlVar.H1_OMAR,
         ]]
         populated = []
         for company in data[Variables.BloombergDB.BB_TICKER].unique():
