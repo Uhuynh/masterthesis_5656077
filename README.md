@@ -15,7 +15,7 @@ s4584479@stud.uni-frankfurt.de
 M.Sc. International Management  
 Summer Term 2021  
 
-## 1. Data
+## 1. Data Sources
 Data used in the thesis (2006 - 2020) is collected from three sources:  
 * Bloomberg Terminal
 * Eikon DataStream (Refinitiv)
@@ -33,14 +33,14 @@ Following data is received and saved under ```data/raw_data/credit_rating_superv
 * S&P credit ratings from 1980 to 2015
 
 ## 2. Workflow
+The workflow of the thesis is as follows:  
+
 ![](static/master_thesis_workflow.png)
 
+### 2.1. ETL (Extract - Transform - Load) Process
+This process is done in ```lib/clean_data.py``` and includes the following steps:
+* Extract raw data from downloaded Excel files (as mentioned in Section 1.)
+* Transform raw data from wide to long format
+* Load (write) the transformed data to Excel file ```data/cleaned_data/cleaned_data.xlsx```
 
-
-
-
-lib directory: contains main code snippet to clean and prepare data for running regressions
-
-data directory: contains raw data downloaded from Bloomberg Terminal and Refinitiv Eikon Datastream
-- cleaned data are under: data/cleaned_data/cleaned_data.xlsx
-- regression data are under: data/cleaned_data/regression_data.xlsx
+*Note*: This ETL process is done separately for each data source.
