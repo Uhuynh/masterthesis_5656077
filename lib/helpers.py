@@ -12,7 +12,8 @@ This module contains small functions that will be frequently re-used within the 
 
 class DataRoot:
     """
-    Provides data root paths of the project.
+    Provides relative root paths of the project.
+    This helps avoid using absolute paths, which makes the code unusable in another computer.
     """
 
     def __init__(self):

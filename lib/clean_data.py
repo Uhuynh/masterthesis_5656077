@@ -9,23 +9,43 @@ from lib.helpers import DataRoot, SmallFunction
 
 class CleanBase(DataRoot):
     """
-    This class provides an overview of standard ETL procedure for cleaning the raw data:
+    This class provides an overview of standard ETL procedure for cleaning the raw data.
+
+    The ETL process will follow below steps:
         1. Extract raw data downloaded from Bloomberg/Refinitiv in Excel
         2. Transform data (convert wide format to long format)
-        3. Load transformed data by exporting to Excel.
+        3. Load transformed data by exporting to Excel and saved under 'data/cleaned_data/cleaned_data.xlsx'.
     """
 
     def __init__(self):
         super().__init__()
 
-    def extract_data(self, file_name: str, sheet_name: str):
+    def extract_data(self, file_name: str, sheet_name: str) -> pd.DataFrame:
+        """
+        Extract raw data from downloaded Excel files stored under 'data/raw_data'
+        :param file_name: name of the downloaded Excel file
+        :param sheet_name: relevant sheet name of file_name that will be used
+        :return: a data frame
+        """
         return pd.read_excel(os.path.join(self.raw_data_root, file_name), sheet_name=sheet_name)
 
-    def transform_data(self, data):
+    def transform_data(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Transform data from wide to long format and drop NA values
+        :param data: a data frame extracted from extract_data()
+        :return: a data frame that is transformed
+        """
         return data
 
     @staticmethod
-    def load_data(data, file_name: str, sheet_name: str):
+    def load_data(data: pd.DataFrame, file_name: str, sheet_name: str) -> None:
+        """
+        Write the transformed data to Excel file and save it under 'data/cleaned_data'
+        :param data: a transformed data frame from transform_data()
+        :param file_name: file name that data will be written to (usually 'cleaned_data.xlsx')
+        :param sheet_name: relevant sheet name, depending on data source
+        :return: None
+        """
         with pd.ExcelWriter(file_name) as writer:
             data.to_excel(writer, sheet_name=sheet_name, index=False)
 
@@ -39,8 +59,8 @@ class BloombergESG(CleanBase):
         super().__init__()
 
     def control(self):
-        data = self.extract_data(file_name=Variables.BloombergDB.RAW_DATA_FILE_NAME,
-                                 sheet_name=Variables.BloombergDB.ESG_SHEET_NAME)
+        data = self.extract_data(file_name=Variables.BloombergDB.FILES.RAW_DATA_FILE_NAME,
+                                 sheet_name=Variables.BloombergDB.FILES.ESG_SHEET_NAME)
         data_t = self.transform_data(data)
         self.load_data(transformed_data=data_t,
                        file_name=Variables.CleanedData.FILE_NAME,
