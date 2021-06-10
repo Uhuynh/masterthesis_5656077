@@ -7,17 +7,21 @@ from lib.variable_names import Variables
 from lib.helpers import DataRoot, SmallFunction
 
 """
-This module performs ETL process for all raw data.
+This module performs ETL process for raw data from all data sources.
+More details can be found in the documentation of each class below.
 """
 
 
 class CleanBase(DataRoot):
     """
-    This class provides an overview of standard ETL procedure for cleaning the raw data.
+    This class:
+        - provides an overview of standard ETL procedure for cleaning the raw data.
+        - acts as an abstract class, which will be inherited many times in the
+        subsequent classes that are responsible for cleaning each data source.
 
     The ETL process will follow below steps:
-        1. Extract raw data downloaded from Bloomberg/Refinitiv in Excel
-        2. Transform data (convert wide format to long format)
+        1. Extract raw data downloaded from Bloomberg/Refinitiv in Excel files
+        2. Transform data (convert from wide format to long format)
         3. Load transformed data by exporting to Excel and saved under 'data/cleaned_data/cleaned_data.xlsx'.
     """
 
@@ -44,7 +48,8 @@ class CleanBase(DataRoot):
 
     def extract_data(self, file_name: str, sheet_name: str) -> pd.DataFrame:
         """
-        Extract raw data from downloaded Excel files stored under 'data/raw_data'
+        Extract raw data from downloaded Excel files stored under 'data/raw_data'.
+
         :param file_name: name of the downloaded Excel file
         :param sheet_name: relevant sheet name of file_name that will be used
         :return: a data frame
@@ -54,7 +59,8 @@ class CleanBase(DataRoot):
     def transform_data(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Transform data from wide to long format and drop NA values.
-        This function will be customized in the child class depending on data source.
+        This function will always be customized in the child class depending on data source.
+
         :param data: a data frame extracted from extract_data()
         :return: a data frame that is transformed
         """
@@ -63,8 +69,9 @@ class CleanBase(DataRoot):
     @staticmethod
     def load_data(data: pd.DataFrame, file_name: str, sheet_name: str) -> None:
         """
-        Write the transformed data to Excel file and save it under 'data/cleaned_data'
-        :param data: a transformed data frame from transform_data()
+        Write the transformed data to Excel file and save it under 'data/cleaned_data'.
+
+        :param data: a transformed data frame resulted from transform_data()
         :param file_name: file name that data will be written to (usually 'cleaned_data.xlsx')
         :param sheet_name: relevant sheet name, depending on data source
         :return: None
