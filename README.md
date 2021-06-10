@@ -32,6 +32,9 @@ Following data is retrieved and saved under ```data/raw_data/refinitiv_raw.xlsx`
 Following data is received and saved under ```data/raw_data/credit_rating_supervisors.xlsx```:
 * S&P credit ratings from 1980 to 2015
 
+## 2. Workflow
+![](static/master_thesis_workflow.png)
+
 
 
 

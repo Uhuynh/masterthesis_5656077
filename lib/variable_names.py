@@ -108,7 +108,7 @@ class Variables:
 
         class INDUSTRY:
             """
-            Fields mnemonic of three chosen industries in the sample
+            Fields mnemonic of three chosen industries in the sample.
             """
             INDUSTRY_1 = 'Aerospace/Automotive/Capital Goods/Metal'
             INDUSTRY_2 = 'Energy and Natural Resources'
@@ -116,7 +116,7 @@ class Variables:
 
         class FILES:
             """
-            File names (of both hypotheses) that will be used in the regression
+            File names (of both hypotheses) that will be used in the regression.
             """
 
             # H1 file names
@@ -131,33 +131,33 @@ class Variables:
 
         class DependentVar:
             """
-            Names of dependent variables (of both hypotheses) that will be used in the regression
+            Names of dependent variables (of both hypotheses) that will be used in the regression.
                 - H1: hypothesis 1
                 - H2: hypothesis 2
             """
 
-            H1_CREDIT_RTG_VAR = 'CREDIT_RTG'
-            H2_CREDIT_RTG_CHANGE_VAR = 'CR_CHANGE'
-            H2_MONTHLY_CREDIT_RTG_CHANGE_VAR = 'CR_CHANGE_M'
-            H2_YEARLY_CREDIT_RTG_CHANGE_VAR = 'CR_CHANGE_Y'
+            H1_CREDIT_RTG = 'CREDIT_RTG'
+            H2_CREDIT_RTG_CHANGE = 'CR_CHANGE'
+            H2_MONTHLY_CREDIT_RTG_CHANGE = 'CR_CHANGE_M'
+            H2_YEARLY_CREDIT_RTG_CHANGE = 'CR_CHANGE_Y'
 
         class IndependentVar:
             """
-            Names of independent variables (of both hypotheses) that will be used in the regression
+            Names of independent variables (of both hypotheses) that will be used in the regression.
                 - H1: hypothesis 1
                 - H2: hypothesis 2
             """
 
-            H1_ESG_RTG_VAR = 'ESG_RTG'
-            H1_ESG_ENV_VAR = 'ESG_E'
-            H1_ESG_SOC_VAR = 'ESG_S'
-            H1_ESG_GOV_VAR = 'ESG_G'
+            H1_ESG_RTG = 'ESG_RTG'
+            H1_ESG_ENV = 'ESG_E'
+            H1_ESG_SOC = 'ESG_S'
+            H1_ESG_GOV = 'ESG_G'
 
             H2_ESG_RATED_DUMMY = 'ESG_RATED'
 
         class ControlVar:
             """
-            Fields mnemonic of four financial control variables
+            Fields mnemonic of control variables (of both hypotheses) that will be used in the regression
                 - H1: hypothesis 1
                 - H2: hypothesis 2
             """
@@ -167,8 +167,8 @@ class Variables:
             H1_ICOV = 'INTEREST_COVERAGE_RATIO'
             H1_OMAR = 'OPER_MARGIN'
 
-            H2_AVG_SIZE_VAR = 'AVG_SIZE'
-            H2_AVG_LEV_VAR = 'AVG_LEV'
-            H2_AVG_ICOV_VAR = 'AVG_ICOV'
-            H2_AVG_OMAR_VAR = 'AVG_OMAR'
+            H2_AVG_SIZE = 'AVG_SIZE'
+            H2_AVG_LEV = 'AVG_LEV'
+            H2_AVG_ICOV = 'AVG_ICOV'
+            H2_AVG_OMAR = 'AVG_OMAR'
             H2_LONG_TERM_DUMMY = 'LONG_TERM'
