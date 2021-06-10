@@ -22,8 +22,8 @@ class DataRoot:
         self.cleaned_data_root = os.path.join(self.project_root, 'data', 'cleaned_data')
 
         # overall company info (from Bloomberg)
-        self.company_info = pd.read_excel(os.path.join(self.raw_data_root, Variables.BloombergDB.RAW_DATA_FILE_NAME),
-                                          sheet_name=Variables.BloombergDB.COMPANY_INFO_SHEET_NAME)
+        self.company_info = pd.read_excel(os.path.join(self.raw_data_root, Variables.BloombergDB.FILES.RAW_DATA_FILE_NAME),
+                                          sheet_name=Variables.BloombergDB.FILES.COMPANY_INFO_SHEET_NAME)
 
 
 class SmallFunction:

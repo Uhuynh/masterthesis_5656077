@@ -9,6 +9,12 @@ from lib.helpers import DataRoot, SmallFunction
 """
 This module performs ETL process for raw data from all data sources.
 More details can be found in the documentation of each class below.
+
+To execute a specific class to see how the output is generated:
+    + please scroll down to the end of the script where the clause
+      if __name__ == "__main__" is placed
+    + assign a string to the 'mode' variable in function clean_data_run()
+    + choices of the 'mode' variable are defined in function clean_data_run()
 """
 
 
@@ -44,7 +50,7 @@ class CleanBase(DataRoot):
         data_t = self.transform_data(data)
 
         # load
-        self.load_data(transformed_data=data_t, file_name=self.cleaned_file_name, sheet_name=self.cleaned_sheet_name)
+        self.load_data(data=data_t, file_name=self.cleaned_file_name, sheet_name=self.cleaned_sheet_name)
 
     def extract_data(self, file_name: str, sheet_name: str) -> pd.DataFrame:
         """
@@ -66,8 +72,8 @@ class CleanBase(DataRoot):
         """
         return data
 
-    @staticmethod
-    def load_data(data: pd.DataFrame, file_name: str, sheet_name: str) -> None:
+    # @staticmethod
+    def load_data(self, data: pd.DataFrame, file_name: str, sheet_name: str) -> None:
         """
         Write the transformed data to Excel file and save it under 'data/cleaned_data'.
 
@@ -76,7 +82,8 @@ class CleanBase(DataRoot):
         :param sheet_name: relevant sheet name, depending on data source
         :return: None
         """
-        with pd.ExcelWriter(file_name) as writer:
+        # with pd.ExcelWriter(file_name) as writer:
+        with pd.ExcelWriter(os.path.join(self.cleaned_data_root, file_name)) as writer:
             data.to_excel(writer, sheet_name=sheet_name, index=False)
 
 
@@ -217,24 +224,25 @@ class RefinitivESG(CleanBase):
 class BloombergCreditRtg(CleanBase):
     """
     This class clean and transform data for credit ratings.
+
     It performs the following steps (as defined in .control() method):
 
-        - clean_supervisor_data():
+        1. clean_supervisor_data():
             + clean credit ratings provided by supervisors
 
-        - clean_bb_data():
+        2. clean_bb_data():
             + clean credit ratings changes downloaded from Bloomberg
 
-        - merge_all():
+        3. merge_all():
             + merge the two above datasets
 
-        - hard_code_rtg():
+        4. hard_code_rtg():
             + transform credit ratings to an ordinal scale
 
-        - classify_rtg():
+        5. classify_rtg():
             + label whether a rating is investment / speculative grade
 
-        - populate_rtg():
+        6. populate_rtg():
             + populate credit ratings to monthly data
             because we only have information when there is a change in credit ratings from Bloomberg,
             not a continuous time series.
@@ -275,17 +283,17 @@ class BloombergCreditRtg(CleanBase):
         populated_rtg = self.populate_rtg(sp_credit_rtg)
 
         # write cleaned ratings to Excel
-        self.load_data(transformed_data=sp_credit_rtg, file_name=self.cleaned_file_name,
+        self.load_data(data=sp_credit_rtg, file_name=self.cleaned_file_name,
                        sheet_name=Variables.CleanedData.SP_CREDIT_RTG_SHEET_NAME)
 
         # write populated cleaned ratings to Excel
-        self.load_data(transformed_data=populated_rtg, file_name=self.cleaned_file_name,
+        self.load_data(data=populated_rtg, file_name=self.cleaned_file_name,
                        sheet_name=Variables.CleanedData.POPULATED_SP_CREDIT_RTG_SHEET_NAME)
 
 
     def clean_supervisor_data(self, supervisor_data: pd.DataFrame) -> pd.DataFrame:
         """
-        Transform credit rating dataset provided by supervisor.
+        Transform credit rating dataset provided by supervisors.
         """
 
         # merge credit ratings (from Zorka) to list of selected companies on 'company_id'
@@ -439,8 +447,10 @@ class BloombergAccounting(BloombergESG):
     This class inherits BloombergESG class due to similar transforming procedure.
 
     It performs the following steps in addition to the normal ETL process:
+
         - calculate_control_var():
             + calculate additional variables that will be used in regression
+
         - populate():
             + populate accounting to monthly data (as downloaded data is yearly)
     """
@@ -452,30 +462,34 @@ class BloombergAccounting(BloombergESG):
         data = self.extract_data(file_name=Variables.BloombergDB.FILES.RAW_DATA_FILE_NAME,
                                  sheet_name=Variables.BloombergDB.FILES.ACCOUNTING_DATA_SHEET_NAME)
         data_t = self.transform_data(data)
-        self.load_data(transformed_data=data_t, file_name=self.cleaned_file_name,
+        self.load_data(data=data_t, file_name=self.cleaned_file_name,
                        sheet_name=Variables.CleanedData.ACCOUNTING_SHEET_NAME)
 
         data = self.calculate_control_var(data_t)
         populated_data = self.populate(data)
-        self.load_data(transformed_data=populated_data, file_name=self.cleaned_file_name,
+        self.load_data(data=populated_data, file_name=self.cleaned_file_name,
                        sheet_name=Variables.CleanedData.POPULATED_ACCOUNTING_SHEET_NAME)
 
     @staticmethod
-    def calculate_control_var(data):
+    def calculate_control_var(data: pd.DataFrame) -> pd.DataFrame:
         """
         Calculate additional control variables:
             - SIZE = natural log of Total Assets in millions of Euros
             - LEVERAGE = (Long-term Borrowing / Total Assets) * 100
+
+        :param data: transformed accounting data received from transform_data()
         """
-        data['SIZE'] = np.log(data['BS_TOT_ASSET'])
-        data['LEVERAGE'] = (data['BS_LT_BORROW'] / data['BS_TOT_ASSET']) * 100
+        data[Variables.RegressionData.ControlVar.H1_SIZE] = np.log(data['BS_TOT_ASSET'])
+        data[Variables.RegressionData.ControlVar.H1_LEV] = (data['BS_LT_BORROW'] / data['BS_TOT_ASSET']) * 100
 
         return data
 
 
-    def populate(self, data):
+    def populate(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Populate accounting data to monthly data from 2006 - 2020.
+
+        :param data: transformed accounting data received from transform_data()
         """
         series = SmallFunction.generate_series(start_dt=date(2006, 1, 1), end_dt=date(2020, 12, 31))
         data = data[[
@@ -504,9 +518,33 @@ class BloombergAccounting(BloombergESG):
         return populated
 
 
+def clean_data_run(mode='all'):
+    """
+    Run the ETL process for a chosen data source as defined above.
+    :param mode: name of the data source to be executed
+
+    Choices of 'mode' variable are:
+        - 'bloomberg_esg': ESG data from Sustainalytics & S&P Global
+        - 'refinitiv_esg': ESG data from Refinitiv
+        - 'credit_rating': S&P credit ratings data
+        - 'accounting': accounting data
+        - 'all': all data sources mentioned above (Note: this may takes long time)
+    """
+
+    if mode == 'bloomberg_esg':
+        BloombergESG().control()
+    elif mode == 'refinitiv_esg':
+        RefinitivESG().control()
+    elif mode == 'credit_rating':
+        BloombergCreditRtg().control()
+    elif mode == 'accounting':
+        BloombergAccounting().control()
+    else:
+        BloombergESG().control()
+        RefinitivESG().control()
+        BloombergCreditRtg().control()
+        BloombergAccounting().control()
+
+
 if __name__ == "__main__":
-    BloombergESG().control()
-    # RefinitivESG().control()
-    # BloombergCreditRtg().control()
-    # BloombergAccounting().control()
-    pass
+    clean_data_run(mode='bloomberg_esg')
