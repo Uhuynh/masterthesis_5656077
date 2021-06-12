@@ -37,10 +37,21 @@ The workflow of the thesis is as follows:
 
 ![](static/master_thesis_workflow.png)
 
-### 2.1. ETL (Extract - Transform - Load) Process
+### 2.1. Clean Data - ETL (Extract - Transform - Load) Process
 This process is done in ```lib/clean_data.py``` and includes the following steps:
 * Extract raw data from downloaded Excel files (as mentioned in Section 1.)
 * Transform raw data from wide to long format
 * Load (write) the transformed data to Excel file ```data/cleaned_data/cleaned_data.xlsx```
 
 *Note*: This ETL process is done separately for each data source.
+
+### 2.2. Prepare Data for Regression
+This process is done in ```lib/prepare_data.py``` and includes the following steps:
+* For hypothesis 1:
+    * merge ESG ratings data of each provider with credit ratings and accounting data
+    * drop rows where there is at least one NA value
+      
+* For hypothesis 2:
+    * merge credit ratings with ESG ratings of all providers and accounting data
+    * only drop rows where accounting data contains NA values
+    

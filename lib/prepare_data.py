@@ -12,7 +12,7 @@ from statsmodels.miscmodels.ordinal_model import OrderedModel
 
 class PrepareData(DataRoot):
     """
-    Prepare data for getting descriptive statistics and running regression
+    Prepare data for each hypothesis, in order to get descriptive statistics and run regression
     """
 
     def __init__(self):

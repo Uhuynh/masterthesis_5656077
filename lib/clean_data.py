@@ -462,8 +462,8 @@ class BloombergAccounting(BloombergESG):
         data = self.extract_data(file_name=Variables.BloombergDB.FILES.RAW_DATA_FILE_NAME,
                                  sheet_name=Variables.BloombergDB.FILES.ACCOUNTING_DATA_SHEET_NAME)
         data_t = self.transform_data(data)
-        self.load_data(data=data_t, file_name=self.cleaned_file_name,
-                       sheet_name=Variables.CleanedData.ACCOUNTING_SHEET_NAME)
+        # self.load_data(data=data_t, file_name=self.cleaned_file_name,
+        #                sheet_name=Variables.CleanedData.ACCOUNTING_SHEET_NAME)
 
         data = self.calculate_control_var(data_t)
         populated_data = self.populate(data)
@@ -533,12 +533,16 @@ def clean_data_run(mode='all'):
 
     if mode == 'bloomberg_esg':
         BloombergESG().control()
+
     elif mode == 'refinitiv_esg':
         RefinitivESG().control()
+
     elif mode == 'credit_rating':
         BloombergCreditRtg().control()
+
     elif mode == 'accounting':
         BloombergAccounting().control()
+
     else:
         BloombergESG().control()
         RefinitivESG().control()
@@ -547,4 +551,4 @@ def clean_data_run(mode='all'):
 
 
 if __name__ == "__main__":
-    clean_data_run(mode='bloomberg_esg')
+    clean_data_run(mode='accounting')
