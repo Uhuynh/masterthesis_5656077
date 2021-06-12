@@ -91,6 +91,8 @@ class BloombergESG(CleanBase):
     """
     Clean S&P Global (formerly RobecoSAM) and Sustainalytics ESG data downloaded from Bloomberg.
     This class inherits all features from the CleanBase class defined above.
+
+    The generated data is saved under sheet name 'esg_bb' in 'data/cleaned_data/cleaned_data.xlsx'.
     """
 
     def __init__(self):
@@ -150,6 +152,8 @@ class RefinitivESG(CleanBase):
     """
     Clean ESG data downloaded from Refinitiv.
     This class inherits all features from the CleanBase class defined above.
+
+    The generated data is saved under sheet name 'esg_refinitiv' in 'data/cleaned_data/cleaned_data.xlsx'.
     """
 
     def __init__(self):
@@ -246,6 +250,11 @@ class BloombergCreditRtg(CleanBase):
             + populate credit ratings to monthly data
             because we only have information when there is a change in credit ratings from Bloomberg,
             not a continuous time series.
+
+    The cleaned credit rating data is saved under sheet name 'sp_credit_rtg' in 'data/cleaned_data/cleaned_data.xlsx'.
+
+    The cleaned and monthly populated credit rating data is saved
+    under sheet name 'populated_sp_credit_rtg' in 'data/cleaned_data/cleaned_data.xlsx'.
     """
 
     def __init__(self):
@@ -253,7 +262,7 @@ class BloombergCreditRtg(CleanBase):
 
     def control(self) -> None:
         """
-        This function executes workflow of cleaning credit ratings
+        This function executes workflow of cleaning credit ratings as described in the class documentation.
         """
 
         # get supervisor's provided data
@@ -403,7 +412,7 @@ class BloombergCreditRtg(CleanBase):
         Populate credit ratings to monthly data from 2006 - 2020
         by using 'ffill' method from pandas package.
 
-        :param data: transformed data frame of credit ratings
+        :param data: transformed data frame of credit ratings from merge_all() function
         """
 
         # extract month and year from rating_date
@@ -453,6 +462,11 @@ class BloombergAccounting(BloombergESG):
 
         - populate():
             + populate accounting to monthly data (as downloaded data is yearly)
+
+    The cleaned accounting data is saved under sheet name 'accounting' in 'data/cleaned_data/cleaned_data.xlsx'.
+
+    The cleaned and monthly populated credit rating data is saved
+    under sheet name 'populated_accounting' in 'data/cleaned_data/cleaned_data.xlsx'.
     """
 
     def __init__(self):
@@ -551,4 +565,4 @@ def clean_data_run(mode='all'):
 
 
 if __name__ == "__main__":
-    clean_data_run(mode='accounting')
+    clean_data_run(mode='bloomberg_esg')

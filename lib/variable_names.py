@@ -92,7 +92,7 @@ class Variables:
         File names of cleaned data.
         """
 
-        FILE_NAME = 'cleaned_data1.xlsx'
+        FILE_NAME = 'cleaned_data.xlsx'
         BLOOMBERG_ESG_SHEET_NAME = 'esg_bb'
         REFINITIV_ESG_SHEET_NAME = 'esg_refinitiv'
         SP_CREDIT_RTG_SHEET_NAME = 'sp_credit_rtg'
@@ -121,13 +121,15 @@ class Variables:
 
             # H1 file names
             H1_FILE_NAME = 'h1_regression_data.xlsx'
-            H1_WINSORIZED_FILE_NAME = 'h1_regression_data_winsorized.xlsx'
             H1_SUSTAINALYTICS_SHEET_NAME = 'h1_sustainalytics'
             H1_REFINITIV_SHEET_NAME = 'h1_refinitiv'
             H1_SPGLOBAL_SHEET_NAME = 'h1_spglobal'
 
             # H2 file names
             H2_FILE_NAME = 'h2_regression_data.xlsx'
+            H2_MONTHLY_DATA_SHEET_NAME = 'h2_monthly'
+            H2_YEARLY_DATA_SHEET_NAME = 'h2_yearly'
+            H2_MAIN_DATA_SHEET_NAME = 'h2_main'
 
         class DependentVar:
             """

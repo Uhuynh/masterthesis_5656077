@@ -16,7 +16,7 @@ M.Sc. International Management
 Summer Term 2021  
 
 ## 1. Data Sources
-Data used in the thesis (2006 - 2020) is collected from three sources:  
+Data used in the thesis (2006 - 2020) is collected from three sources based on a list of 226 selected European companies:  
 * Bloomberg Terminal
 * Eikon DataStream (Refinitiv)
 * data provided by my supervisors (Ms. Zorka and Mr. Carmelo)
@@ -46,12 +46,22 @@ This process is done in ```lib/clean_data.py``` and includes the following steps
 *Note*: This ETL process is done separately for each data source.
 
 ### 2.2. Prepare Data for Regression
-This process is done in ```lib/prepare_data.py``` and includes the following steps:
+
+This process is done in ```lib/prepare_data.py``` (using data generated from ETL process) and includes the following steps:
 * For hypothesis 1:
-    * merge ESG ratings data of each provider with credit ratings and accounting data
+    * (left) merge ESG ratings data of each provider with credit ratings and accounting data
     * drop rows where there is at least one NA value
+    * winsorize all control variables at 5% and 95%  
+    * save created data under ```data/cleaned_data/h1_regression_data.xlsx```
       
 * For hypothesis 2:
-    * merge credit ratings with ESG ratings of all providers and accounting data
+    * (left) merge credit ratings with ESG ratings of all providers and accounting data
     * only drop rows where accounting data contains NA values
+    * save created data under ```data/cleaned_data/h2_regression_data.xlsx```
+  
+*Note*: the merging order is very important in generating regression data for each hypothesis.
+Regarding hypothesis 1, we start with the ESG ratings, then credit ratings, and finally accounting data.
+Regarding hypothesis 2, we start with credit ratings, then ESG ratings, and finally accounting data.
+
+
     

@@ -87,11 +87,6 @@ class Regression:
         rating_type = CategoricalDtype(categories=sorted(data[Variables.RegressionData.H1_CREDIT_RTG_VAR].unique()), ordered=True)
         data[Variables.RegressionData.H1_CREDIT_RTG_VAR] = data[Variables.RegressionData.H1_CREDIT_RTG_VAR].astype(rating_type)
 
-        # winsorize all control variables at 5% and 95%
-        # data[Variables.ControlVar.ICOV] = winsorize(data[Variables.ControlVar.ICOV], limits=[0.05, 0.05])
-        # data[Variables.ControlVar.OMAR] = winsorize(data[Variables.ControlVar.OMAR], limits=[0.05, 0.05])
-        # data[Variables.ControlVar.SIZE] = winsorize(data[Variables.ControlVar.SIZE], limits=[0.05, 0.05])
-        # data[Variables.ControlVar.LEV] = winsorize(data[Variables.ControlVar.LEV], limits=[0.05, 0.05])
 
         # ordered logit regression
 

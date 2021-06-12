@@ -49,23 +49,25 @@ class SmallFunction:
 
 class ExtractData(DataRoot):
     """
-    Extract cleaned data and regression data.
+    This class extracts cleaned data and regression data.
     """
+
     def __init__(self):
         super().__init__()
+        self.cleaned_file_name = Variables.CleanedData.FILE_NAME
 
     def extract_cleaned_data(self):
         """
-        Return a dictionary contains dataframe of (cleaned) ESG ratings,
-        credit ratings of each provider and accounting data.
+        :return a dictionary contains dataframes of (cleaned) ESG ratings of each rating provider,
+        S&P credit ratings, and accounting data. The dictionary has the following keys:
 
-            - sustainalytics: Sustainalytics ESG rating
-            - spglobal: S&P Global (RobecoSAM) ESG rating
-            - refinitiv: Refinitiv ESG rating
-            - populated_sp: populated S&P credit rating
-            - control_var: populated control variables
+            - 'sustainalytics': Sustainalytics ESG ratings
+            - 'spglobal': S&P Global (RobecoSAM) ESG ratings
+            - 'refinitiv': Refinitiv ESG ratings
+            - 'populated_sp': populated S&P credit ratings
+            - 'control_var': populated control variables
         """
-        esg_bb = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.CleanedData.FILE_NAME),
+        esg_bb = pd.read_excel(os.path.join(self.cleaned_data_root, self.cleaned_file_name),
                                sheet_name=Variables.CleanedData.BLOOMBERG_ESG_SHEET_NAME)
 
         # get data of Sustainalytics ESG ratings
@@ -86,16 +88,16 @@ class ExtractData(DataRoot):
             Variables.SustainalyticsESG.GOV
         ])
 
-        # get companies with Refinitiv ESG ratings
-        refinitiv = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.CleanedData.FILE_NAME),
+        # get data of Refinitiv ESG ratings
+        refinitiv = pd.read_excel(os.path.join(self.cleaned_data_root, self.cleaned_file_name),
                                   sheet_name=Variables.CleanedData.REFINITIV_ESG_SHEET_NAME)
 
-        # get companies with populated S&P credit rating
-        populated_sp = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.CleanedData.FILE_NAME),
+        # get data of populated S&P credit ratings
+        populated_sp = pd.read_excel(os.path.join(self.cleaned_data_root, self.cleaned_file_name),
                                      sheet_name=Variables.CleanedData.POPULATED_SP_CREDIT_RTG_SHEET_NAME)
 
-        # get populated control variables of companies
-        control_var = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.CleanedData.FILE_NAME),
+        # get data of populated control variables
+        control_var = pd.read_excel(os.path.join(self.cleaned_data_root, self.cleaned_file_name),
                                     sheet_name=Variables.CleanedData.POPULATED_ACCOUNTING_SHEET_NAME)
 
         return {'spglobal': spglobal,
