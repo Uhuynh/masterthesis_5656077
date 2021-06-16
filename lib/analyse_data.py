@@ -7,6 +7,17 @@ import matplotlib.pyplot as plt
 from lib.variable_names import Variables
 from lib.helpers import ExtractData
 
+"""
+This module performs analyzing process for regression data.
+More details can be found in the documentation of each class below.
+
+To execute a specific class to see how the output is generated:
+    + please scroll down to the end of the script where the clause
+      if __name__ == "__main__" is placed
+    + assign a string to the 'mode' variable in function clean_data_run()
+    + choices of the 'mode' variable are defined in function clean_data_run()
+"""
+
 
 class AnalyseData:
     """
@@ -17,14 +28,21 @@ class AnalyseData:
         pass
 
     def control(self):
-        x = 1
+
+        # get descriptive statistics of all datasets
+        descriptive_stat = self.descriptive_stat()
+
+        # get correlation matrix of each dataset of hypothesis 1
+        self.corr_h1(data=self.regression_data_dict['h1_refinitiv'])
+        self.corr_h1(data=self.regression_data_dict['h1_spglobal'])
+        self.corr_h1(data=self.regression_data_dict['h1_sustainalytics'])
         pass
 
 
     def descriptive_stat(self):
         """
-        Returns a dataframe of descriptive statistics for regression data,
-        separated by ESG rating provider.
+        Returns a dataframe of descriptive statistics for each regression dataset
+        that is retrieved and stored in the class variable 'regression_data_dict'.
         """
         result = pd.DataFrame()
         for key in self.regression_data_dict.keys():
@@ -42,55 +60,59 @@ class AnalyseData:
         """
         :parameter data: a dataframe of regression data for hypothesis 1, extracted from 'regression_data.xlsx'
 
-        This function generates pairwise correlation coefficients and p-values.
+        This function generates Pearson pairwise correlation coefficients and p-values.
             - scipy library is used to calculate Pearson pairwise correlation and two-sided p-values,
               for more info regarding the library:
               https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html
+            - the first printed out element of the tuple is the coefficient, and the second element is the p-value.
+
+        Note: the pairwise correlation is calculated one by one, therefore it is important to look at the console
+        to see the results.
         """
 
-        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.RegressionData.H1_ESG_RTG_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.RegressionData.H1_ESG_ENV_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.RegressionData.H1_ESG_SOC_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.RegressionData.H1_ESG_GOV_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.ControlVar.H1_SIZE]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.ControlVar.H1_LEV]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.ControlVar.H1_ICOV]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_CREDIT_RTG_VAR], data[Variables.ControlVar.H1_OMAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.DependentVar.H1_CREDIT_RTG], data[Variables.RegressionData.IndependentVar.H1_ESG_RTG]))
+        print(stats.pearsonr(data[Variables.RegressionData.DependentVar.H1_CREDIT_RTG], data[Variables.RegressionData.IndependentVar.H1_ESG_ENV]))
+        print(stats.pearsonr(data[Variables.RegressionData.DependentVar.H1_CREDIT_RTG], data[Variables.RegressionData.IndependentVar.H1_ESG_SOC]))
+        print(stats.pearsonr(data[Variables.RegressionData.DependentVar.H1_CREDIT_RTG], data[Variables.RegressionData.IndependentVar.H1_ESG_GOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.DependentVar.H1_CREDIT_RTG], data[Variables.RegressionData.ControlVar.H1_SIZE]))
+        print(stats.pearsonr(data[Variables.RegressionData.DependentVar.H1_CREDIT_RTG], data[Variables.RegressionData.ControlVar.H1_LEV]))
+        print(stats.pearsonr(data[Variables.RegressionData.DependentVar.H1_CREDIT_RTG], data[Variables.RegressionData.ControlVar.H1_ICOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.DependentVar.H1_CREDIT_RTG], data[Variables.RegressionData.ControlVar.H1_OMAR]))
 
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_RTG_VAR], data[Variables.RegressionData.H1_ESG_ENV_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_RTG_VAR], data[Variables.RegressionData.H1_ESG_SOC_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_RTG_VAR], data[Variables.RegressionData.H1_ESG_GOV_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_RTG_VAR], data[Variables.ControlVar.H1_SIZE]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_RTG_VAR], data[Variables.ControlVar.H1_LEV]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_RTG_VAR], data[Variables.ControlVar.H1_ICOV]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_RTG_VAR], data[Variables.ControlVar.H1_OMAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_RTG], data[Variables.RegressionData.IndependentVar.H1_ESG_ENV]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_RTG], data[Variables.RegressionData.IndependentVar.H1_ESG_SOC]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_RTG], data[Variables.RegressionData.IndependentVar.H1_ESG_GOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_RTG], data[Variables.RegressionData.ControlVar.H1_SIZE]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_RTG], data[Variables.RegressionData.ControlVar.H1_LEV]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_RTG], data[Variables.RegressionData.ControlVar.H1_ICOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_RTG], data[Variables.RegressionData.ControlVar.H1_OMAR]))
 
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_ENV_VAR], data[Variables.RegressionData.H1_ESG_SOC_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_ENV_VAR], data[Variables.RegressionData.H1_ESG_GOV_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_ENV_VAR], data[Variables.ControlVar.H1_SIZE]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_ENV_VAR], data[Variables.ControlVar.H1_LEV]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_ENV_VAR], data[Variables.ControlVar.H1_ICOV]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_ENV_VAR], data[Variables.ControlVar.H1_OMAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_ENV], data[Variables.RegressionData.IndependentVar.H1_ESG_SOC]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_ENV], data[Variables.RegressionData.IndependentVar.H1_ESG_GOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_ENV], data[Variables.RegressionData.ControlVar.H1_SIZE]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_ENV], data[Variables.RegressionData.ControlVar.H1_LEV]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_ENV], data[Variables.RegressionData.ControlVar.H1_ICOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_ENV], data[Variables.RegressionData.ControlVar.H1_OMAR]))
 
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_SOC_VAR], data[Variables.RegressionData.H1_ESG_GOV_VAR]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_SOC_VAR], data[Variables.ControlVar.H1_SIZE]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_SOC_VAR], data[Variables.ControlVar.H1_LEV]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_SOC_VAR], data[Variables.ControlVar.H1_ICOV]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_SOC_VAR], data[Variables.ControlVar.H1_OMAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_SOC], data[Variables.RegressionData.IndependentVar.H1_ESG_GOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_SOC], data[Variables.RegressionData.ControlVar.H1_SIZE]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_SOC], data[Variables.RegressionData.ControlVar.H1_LEV]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_SOC], data[Variables.RegressionData.ControlVar.H1_ICOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_SOC], data[Variables.RegressionData.ControlVar.H1_OMAR]))
 
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_GOV_VAR], data[Variables.ControlVar.H1_SIZE]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_GOV_VAR], data[Variables.ControlVar.H1_LEV]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_GOV_VAR], data[Variables.ControlVar.H1_ICOV]))
-        print(stats.pearsonr(data[Variables.RegressionData.H1_ESG_GOV_VAR], data[Variables.ControlVar.H1_OMAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_GOV], data[Variables.RegressionData.ControlVar.H1_SIZE]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_GOV], data[Variables.RegressionData.ControlVar.H1_LEV]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_GOV], data[Variables.RegressionData.ControlVar.H1_ICOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.IndependentVar.H1_ESG_GOV], data[Variables.RegressionData.ControlVar.H1_OMAR]))
 
-        print(stats.pearsonr(data[Variables.ControlVar.H1_SIZE], data[Variables.ControlVar.H1_LEV]))
-        print(stats.pearsonr(data[Variables.ControlVar.H1_SIZE], data[Variables.ControlVar.H1_ICOV]))
-        print(stats.pearsonr(data[Variables.ControlVar.H1_SIZE], data[Variables.ControlVar.H1_OMAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.ControlVar.H1_SIZE], data[Variables.RegressionData.ControlVar.H1_LEV]))
+        print(stats.pearsonr(data[Variables.RegressionData.ControlVar.H1_SIZE], data[Variables.RegressionData.ControlVar.H1_ICOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.ControlVar.H1_SIZE], data[Variables.RegressionData.ControlVar.H1_OMAR]))
 
-        print(stats.pearsonr(data[Variables.ControlVar.H1_LEV], data[Variables.ControlVar.H1_ICOV]))
-        print(stats.pearsonr(data[Variables.ControlVar.H1_LEV], data[Variables.ControlVar.H1_OMAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.ControlVar.H1_LEV], data[Variables.RegressionData.ControlVar.H1_ICOV]))
+        print(stats.pearsonr(data[Variables.RegressionData.ControlVar.H1_LEV], data[Variables.RegressionData.ControlVar.H1_OMAR]))
 
-        print(stats.pearsonr(data[Variables.ControlVar.H1_ICOV], data[Variables.ControlVar.H1_OMAR]))
+        print(stats.pearsonr(data[Variables.RegressionData.ControlVar.H1_ICOV], data[Variables.RegressionData.ControlVar.H1_OMAR]))
 
 
     @staticmethod
@@ -102,6 +124,10 @@ class AnalyseData:
             - scipy library is used to calculate Pearson pairwise correlation and two-sided p-values,
             for more info regarding the library:
             https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html
+            - the first printed out element of the tuple is the coefficient, and the second element is the p-value.
+
+        Note: the pairwise correlation is calculated one by one, therefore it is important to look at the console
+        to see the results.
         """
         print(stats.pearsonr(data['ESG_RATED'], data['CREDIT_RTG_CHANGE']))
         print(stats.pearsonr(data['ESG_RATED'], data[Variables.ControlVar.H1_LEV]))

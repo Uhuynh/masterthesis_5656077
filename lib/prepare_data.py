@@ -33,7 +33,7 @@ class PrepareData(DataRoot):
         self.cleaned_data_dict = ExtractData().extract_cleaned_data()
         self.bb_ticker = Variables.BloombergDB.FIELDS.BB_TICKER
 
-    def control(self, mode='h1'):
+    def control(self, mode='h1') -> None:
         """
         This function prepares data for the main regression of two hypotheses and
         data for additional analyses of hypothesis 2.
@@ -392,7 +392,7 @@ class PrepareData(DataRoot):
         return result
 
 
-    def hypothesis2_main(self, h2_monthly):
+    def hypothesis2_main(self, h2_monthly) -> pd.DataFrame:
         """
         Retrieve data necessary to run main regression for hypothesis 2.
         This data is generated based on data get from hypothesis2_monthly() function.
