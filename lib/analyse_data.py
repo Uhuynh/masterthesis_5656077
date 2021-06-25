@@ -10,19 +10,15 @@ from lib.helpers import ExtractData, DataRoot
 
 """
 This module performs analyzing process for regression data.
-More details can be found in the documentation of each class below.
+More details can be found in the documentation of the class below.
 
 To execute the module simply click the run button.
-    + please scroll down to the end of the script where the clause
-      if __name__ == "__main__" is placed
-    + assign a string to the 'mode' variable in function clean_data_run()
-    + choices of the 'mode' variable are defined in function clean_data_run()
 """
 
 
 class AnalyseData(DataRoot):
     """
-    This class provides different methods for analyzing regression data
+    This class provides different methods for analyzing regression data.
     """
     def __init__(self):
         super().__init__()
@@ -55,7 +51,7 @@ class AnalyseData(DataRoot):
             corr_h1_sustainalytics.to_excel(writer, sheet_name=Variables.DescriptiveStats.CORR_H1_SUSTAINALYTICS_SHEET_NAME, index=False)
             corr_h2.to_excel(writer, sheet_name=Variables.DescriptiveStats.CORR_H2_SHEET_NAME, index=False)
 
-        # pairplots
+        # generate pairplots
         self.pairplot(data_set='h1_refinitiv')
         self.pairplot(data_set='h1_spglobal')
         self.pairplot(data_set='h1_sustainalytics')
