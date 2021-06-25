@@ -38,7 +38,7 @@ The workflow of the project is organized as follows:
 ![](static/master_thesis_workflow.png)
 
 ### 2.1. Clean Data - ETL (Extract - Transform - Load) Process
-This process is done in ```lib/clean_data.py``` and includes the following steps:
+This process is done in module ```lib/clean_data.py``` and includes the following steps:
 * Extract raw data from downloaded Excel files (as mentioned in Section 1.)
 * Transform raw data from wide to long format
 * Load (write) the transformed data to Excel file ```data/cleaned_data/cleaned_data.xlsx```
@@ -47,7 +47,7 @@ This process is done in ```lib/clean_data.py``` and includes the following steps
 
 ### 2.2. Prepare Data for Regression
 
-This process is done in ```lib/prepare_data.py``` (using data generated from ETL process) and includes the following steps:
+This process is done in module ```lib/prepare_data.py``` (using data generated from ETL process) and includes the following steps:
 * For hypothesis 1:
     * (left) merge ESG ratings data of each provider with credit ratings and accounting data
     * drop rows where there is at least one NA value
@@ -59,11 +59,19 @@ This process is done in ```lib/prepare_data.py``` (using data generated from ETL
     * only drop rows where accounting data contains NA values
     * save created data under ```data/cleaned_data/h2_regression_data.xlsx```
   
-*Note*: the merging order is very important in generating regression data for each hypothesis.  
-    * For hypothesis 1, we start with the ESG ratings, then credit ratings, and finally accounting data.
-    * For hypothesis 2, we start with credit ratings, then ESG ratings, and finally accounting data.
+*Note*: the merging order is very important in generating regression data for each hypothesis. 
+For hypothesis 1, we start with the ESG ratings, then credit ratings, and finally accounting data. 
+For hypothesis 2, we start with credit ratings, then ESG ratings, and finally accounting data.
 
 ### 2.3. Analyse Regression Data
+This process is done in module ```lib/analyse_data.py``` (using regression data generated from section 2.2.) and includes the following steps:
+* Generate descriptive statistics
+* Generate correlation matrices
+* Generate pair plots
 
+Generated data is saved under ```data/descriptive stats/descriptive_stats.xlsx```.
 
-    
+### 2.4. Run Regression
+This process is done in module ```lib/regression.py``` (using regression data generated from section 2.2.) and includes the following steps:
+* Run the main regressions for both hypotheses
+* Run addtional analyses as well as robustness checks.

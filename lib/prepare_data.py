@@ -70,7 +70,7 @@ class PrepareData(DataRoot):
             # prepare data for main regression as well as additional analyses of hypothesis 2 and export to Excel
             h2_monthly = self.hypothesis2_monthly()
             h2_yearly = self.hypothesis2_yearly()
-            h2_main = self.hypothesis2_main(h2_monthly)
+            h2_main = self.hypothesis2_main(h2_monthly, start_year=2006, end_year=2020)
 
             with pd.ExcelWriter(Variables.RegressionData.FILES.H2_FILE_NAME) as writer:
                 h2_monthly.to_excel(writer, sheet_name=Variables.RegressionData.FILES.H2_MONTHLY_DATA_SHEET_NAME, index=False)
@@ -392,14 +392,14 @@ class PrepareData(DataRoot):
         return result
 
 
-    def hypothesis2_main(self, h2_monthly) -> pd.DataFrame:
+    def hypothesis2_main(self, h2_monthly: pd.DataFrame, start_year: int, end_year: int) -> pd.DataFrame:
         """
         Retrieve data necessary to run main regression for hypothesis 2.
         This data is generated based on data get from hypothesis2_monthly() function.
 
         The following steps are done:
 
-            - calculate total number of times of credit rating changes for each company
+            - count total number of times of credit rating changes for each company (between start_year and end_year)
                 + for company that starts to have ESG ratings during the sample period,
                 only count for credit rating changes after having ESG ratings available
                 + i.e. the time when this company has no ESG rating is ignored
@@ -416,9 +416,9 @@ class PrepareData(DataRoot):
                 + = 0 otherwise
 
             - create industry dummies
+
             - create country dummies
         """
-
 
         # calculate total number of times of credit rating changes for each company
         # & calculate average values of the control variables during the sample period of each company
@@ -426,6 +426,7 @@ class PrepareData(DataRoot):
         result = []
         for company in h2_monthly[self.bb_ticker].unique():
             df = h2_monthly.loc[h2_monthly[self.bb_ticker] == company]
+            df = df.loc[(df['year'] >= start_year) & (df['year'] <= end_year)]
             if not df.empty:
                 if len(df[Variables.RegressionData.IndependentVar.H2_ESG_RATED_DUMMY].unique()) > 1:
                     df = df.loc[df[Variables.RegressionData.IndependentVar.H2_ESG_RATED_DUMMY] == 1]
@@ -467,256 +468,6 @@ class PrepareData(DataRoot):
         result = result.merge(country_dummy, how='left', left_index=True, right_index=True)
 
         return result
-
-
-
-        ####################################################################################
-
-        h2_monthly = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.H2_FILE_NAME),
-                                   sheet_name='h2')
-
-        h2_monthly = pd.read_excel(os.path.join(self.cleaned_data_root, Variables.RegressionData.H2_FILE_NAME),
-                                   sheet_name='h2_main')
-
-        ####################################################################################
-        # separated by firm size
-        result = result.loc[result['AVG_SIZE'] >= result['AVG_SIZE'].quantile(q=0.75)]
-        result = result.loc[:, (result != 0).any(axis=0)]  # remove redundant dummies
-        ####################################################################################
-        # common sample to calculate ESG ratings correlation
-        common = h2_monthly.loc[
-            (h2_monthly[Variables.RefinitivESG.TOTAL].notnull()) &
-            (h2_monthly[Variables.SPGlobalESG.TOTAL].notnull()) &
-            (h2_monthly[Variables.SustainalyticsESG.TOTAL].notnull())
-            ]
-        print(stats.pearsonr(common[Variables.RefinitivESG.TOTAL], common[Variables.SPGlobalESG.TOTAL]))
-        print(stats.pearsonr(common[Variables.RefinitivESG.TOTAL], common[Variables.SustainalyticsESG.TOTAL]))
-        print(stats.pearsonr(common[Variables.SPGlobalESG.TOTAL], common[Variables.SustainalyticsESG.TOTAL]))
-
-        ####################################################################################
-
-        print(stats.pearsonr(result['ESG_RATED'], result['CREDIT_RTG_CHANGE']))
-
-        rating_type = CategoricalDtype(
-            categories=sorted(result[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR].unique()), ordered=True)
-        result[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR] = result[
-            Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR].astype(
-            rating_type)
-
-        # create investment grade dummies
-        test.loc[test['grade'] == 'investment', 'grade_dummy'] = 1
-        test.loc[test['grade'] == 'speculative', 'grade_dummy'] = 0
-
-        ####################################################################################
-
-        # corr
-        print(stats.pearsonr(result[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR], result[Variables.RegressionData.H2_ESG_RATED_DUMMY]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR], result[Variables.RegressionData.H2_AVG_SIZE_VAR]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR], result[Variables.RegressionData.H2_AVG_LEV_VAR]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR], result[Variables.RegressionData.H2_AVG_ICOV_VAR]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR], result[Variables.RegressionData.H2_AVG_OMAR_VAR]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR], result[Variables.RegressionData.H2_LONG_TERM_DUMMY]))
-
-        print(stats.pearsonr(result[Variables.RegressionData.H2_ESG_RATED_DUMMY], result[Variables.RegressionData.H2_AVG_SIZE_VAR]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_ESG_RATED_DUMMY], result[Variables.RegressionData.H2_AVG_LEV_VAR]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_ESG_RATED_DUMMY], result[Variables.RegressionData.H2_AVG_ICOV_VAR]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_ESG_RATED_DUMMY], result[Variables.RegressionData.H2_AVG_OMAR_VAR]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_ESG_RATED_DUMMY], result[Variables.RegressionData.H2_LONG_TERM_DUMMY]))
-
-        print(stats.pearsonr(result[Variables.RegressionData.H2_AVG_SIZE_VAR], result[Variables.RegressionData.H2_AVG_LEV_VAR]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_AVG_SIZE_VAR], result[Variables.RegressionData.H2_AVG_ICOV_VAR]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_AVG_SIZE_VAR], result[Variables.RegressionData.H2_AVG_OMAR_VAR]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_AVG_SIZE_VAR], result[Variables.RegressionData.H2_LONG_TERM_DUMMY]))
-
-        print(stats.pearsonr(result[Variables.RegressionData.H2_AVG_LEV_VAR], result[Variables.RegressionData.H2_AVG_ICOV_VAR]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_AVG_LEV_VAR], result[Variables.RegressionData.H2_AVG_OMAR_VAR]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_AVG_LEV_VAR], result[Variables.RegressionData.H2_LONG_TERM_DUMMY]))
-
-        print(stats.pearsonr(result[Variables.RegressionData.H2_AVG_ICOV_VAR], result[Variables.RegressionData.H2_AVG_OMAR_VAR]))
-        print(stats.pearsonr(result[Variables.RegressionData.H2_AVG_ICOV_VAR], result[Variables.RegressionData.H2_LONG_TERM_DUMMY]))
-
-        print(stats.pearsonr(result[Variables.RegressionData.H2_AVG_OMAR_VAR], result[Variables.RegressionData.H2_LONG_TERM_DUMMY]))
-
-        # pair plots
-        import seaborn as sns
-        import matplotlib.pyplot as plt
-        plt.figure(figsize=(20, 20))
-        sns.pairplot(result,
-                     vars=[
-                         # 'year',
-                         Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR,
-                         Variables.RegressionData.H2_ESG_RATED_DUMMY,
-                         Variables.RegressionData.H2_AVG_SIZE_VAR,
-                         Variables.RegressionData.H2_AVG_LEV_VAR,
-                         Variables.RegressionData.H2_AVG_ICOV_VAR,
-                         Variables.RegressionData.H2_AVG_OMAR_VAR,
-                         Variables.RegressionData.H2_LONG_TERM_DUMMY
-                     ],
-                     # hue='INDUSTRY',
-                     corner=True,
-                     height=2,
-                     aspect=1
-                     )
-        plt.show()
-
-
-
-        # winsorize OPER_MARGIN at 1% and 99%
-        # new_data['credit_rtg_change_count'] = winsorize(new_data['credit_rtg_change_count'], limits=[0.01, 0.01])
-        # new_data['AVG_SIZE'] = winsorize(new_data['AVG_SIZE'], limits=[0.05, 0.05])
-        # new_data['AVG_LEV'] = winsorize(new_data['AVG_LEV'], limits=[0.05, 0.05])
-        # new_data['AVG_ICOV'] = winsorize(new_data['AVG_ICOV'], limits=[0.05, 0.05])
-        # new_data['AVG_OMAR'] = winsorize(new_data['AVG_OMAR'], limits=[0.05, 0.05])
-
-        # count esg_rated
-        len(result.loc[result['ESG_RATED'] == 0].index)  # 48
-        len(result.loc[result['ESG_RATED'] == 1].index)  # 141
-
-        # category type
-        change_type = CategoricalDtype(categories=sorted(result[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR].unique()), ordered=True)
-        result[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR] = result[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR].astype(change_type)
-
-        upgrade_type = CategoricalDtype(categories=sorted(result['upgrade'].unique()), ordered=True)
-        result['upgrade'] = result['upgrade'].astype(upgrade_type)
-        downgrade_type = CategoricalDtype(categories=sorted(result['downgrade'].unique()), ordered=True)
-        result['downgrade'] = result['downgrade'].astype(downgrade_type)
-
-
-        # industry breakdown
-        result = h2_monthly.copy(deep=True)
-        result = result.loc[result['INDUSTRY'] == Variables.RegressionData.INDUSTRY_2]
-        result = result.loc[:, (result != 0).any(axis=0)]  # remove redundant dummies
-
-
-        full_mod_log = OrderedModel(result[Variables.RegressionData.H2_CREDIT_RTG_CHANGE_VAR],
-                                    result[[
-                                        Variables.RegressionData.H2_ESG_RATED_DUMMY,
-                                        Variables.RegressionData.H2_AVG_SIZE_VAR,
-                                        Variables.RegressionData.H2_AVG_LEV_VAR,
-                                        Variables.RegressionData.H2_AVG_ICOV_VAR,
-                                        Variables.RegressionData.H2_AVG_OMAR_VAR,
-                                        Variables.RegressionData.H2_LONG_TERM_DUMMY,
-                                        'Energy and Natural Resources', 'Utility', 'AZERBAIJAN',
-                                        'BELGIUM', 'BRITAIN', 'CROATIA', 'CZECH', 'DENMARK', 'ESTONIA',
-                                        'FINLAND', 'FRANCE', 'GERMANY', 'GREECE', 'HUNGARY', 'ICELAND',
-                                        'IRELAND', 'ITALY', 'LUXEMBOURG', 'NETHERLANDS', 'NORWAY', 'POLAND',
-                                        'PORTUGAL', 'RUSSIA', 'SLOVAKIA', 'SLOVENIA', 'SPAIN', 'SWEDEN',
-                                        'SWITZERLAND', 'TURKEY', 'UKRAINE'
-                                    ]],
-                                    distr='logit')
-        res_log = full_mod_log.fit(method='bfgs')
-        res_log.summary()
-        print(res_log.prsquared)
-
-        # alternative regression model (yearly credit rating change)
-        full_mod_log = OrderedModel(result[Variables.RegressionData.H2_CREDIT_RTG_YEARLY_CHANGE_VAR],
-                                    result[[
-                                        Variables.RegressionData.H2_ESG_RATED_DUMMY,
-                                        Variables.ControlVar.H1_SIZE,
-                                        Variables.ControlVar.H1_LEV,
-                                        Variables.ControlVar.H1_ICOV,
-                                        Variables.ControlVar.H1_OMAR,
-                                        2007,
-                                        2008,
-                                        2009,
-                                        2010,
-                                        2011,
-                                        2012,
-                                        2013,
-                                        2014,
-                                        2015,
-                                        2016,
-                                        2017,
-                                        2018,
-                                        2019,
-                                        'Energy and Natural Resources', 'Utility', 'AZERBAIJAN',
-                                        'BELGIUM',
-                                        'BRITAIN',
-                                        'CROATIA',
-                                        'CZECH',
-                                        'DENMARK',
-                                        'ESTONIA',
-                                        'FINLAND',
-                                        'FRANCE',
-                                        'GERMANY',
-                                        'GREECE',
-                                        'HUNGARY',
-                                        'ICELAND',
-                                        'IRELAND',
-                                        'ITALY',
-                                        'LUXEMBOURG',
-                                        'NETHERLANDS',
-                                        'NORWAY',
-                                        'POLAND',
-                                        'PORTUGAL',
-                                        'RUSSIA',
-                                        'SLOVAKIA',
-                                        'SLOVENIA',
-                                        'SPAIN',
-                                        'SWEDEN',
-                                        'SWITZERLAND',
-                                        'TURKEY',
-                                        'UKRAINE',
-                                    ]],
-                                    distr='logit')
-        res_log = full_mod_log.fit(method='bfgs')
-        res_log.summary()
-
-        # alternative regression model (monthly credit rating change)
-        full_mod_log = OrderedModel(result['CREDIT_RTG_CHANGE'],
-                                    result[[
-                                        Variables.RegressionData.H2_ESG_RATED_DUMMY,
-                                        Variables.ControlVar.H1_SIZE,
-                                        Variables.ControlVar.H1_LEV,
-                                        Variables.ControlVar.H1_ICOV,
-                                        Variables.ControlVar.H1_OMAR,
-                                        2007,
-                                        2008,
-                                        2009,
-                                        2010,
-                                        2011,
-                                        2012,
-                                        2013,
-                                        2014,
-                                        2015,
-                                        2016,
-                                        2017,
-                                        2018,
-                                        2019,
-                                        2020,
-                                        'Energy and Natural Resources', 'Utility', 'AZERBAIJAN',
-                                        'BELGIUM',
-                                        'BRITAIN',
-                                        'CROATIA',
-                                        'FINLAND',
-                                        'FRANCE',
-                                        'GERMANY',
-                                        'GREECE',
-                                        'HUNGARY',
-                                        'ICELAND',
-                                        'IRELAND',
-                                        'ITALY',
-                                        'LUXEMBOURG',
-                                        'NETHERLANDS',
-                                        'NORWAY',
-                                        'PORTUGAL',
-                                        'RUSSIA',
-                                        'SLOVAKIA',
-                                        'SPAIN',
-                                        'SWEDEN',
-                                        'SWITZERLAND',
-                                        'TURKEY',
-                                        'UKRAINE'
-                                    ]],
-                                    distr='logit')
-        res_log = full_mod_log.fit(method='bfgs')
-        res_log.summary()
-
-        return result
-
-
-
-
 
 
 if __name__ == "__main__":
