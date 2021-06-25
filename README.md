@@ -33,7 +33,7 @@ Following data is received and saved under ```data/raw_data/credit_rating_superv
 * S&P credit ratings from 1980 to 2015
 
 ## 2. Workflow
-The workflow of the thesis is as follows:  
+The workflow of the project is organized as follows:  
 
 ![](static/master_thesis_workflow.png)
 
@@ -59,9 +59,11 @@ This process is done in ```lib/prepare_data.py``` (using data generated from ETL
     * only drop rows where accounting data contains NA values
     * save created data under ```data/cleaned_data/h2_regression_data.xlsx```
   
-*Note*: the merging order is very important in generating regression data for each hypothesis.
-Regarding hypothesis 1, we start with the ESG ratings, then credit ratings, and finally accounting data.
-Regarding hypothesis 2, we start with credit ratings, then ESG ratings, and finally accounting data.
+*Note*: the merging order is very important in generating regression data for each hypothesis.  
+    * For hypothesis 1, we start with the ESG ratings, then credit ratings, and finally accounting data.
+    * For hypothesis 2, we start with credit ratings, then ESG ratings, and finally accounting data.
+
+### 2.3. Analyse Regression Data
 
 
     
