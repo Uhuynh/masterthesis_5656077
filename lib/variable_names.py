@@ -111,6 +111,7 @@ class Variables:
         CORR_H1_SPGLOBAL_SHEET_NAME = 'corr_h1_refinitiv'
         CORR_H1_SUSTAINALYTICS_SHEET_NAME = 'corr_h1_refinitiv'
         CORR_H2_SHEET_NAME = 'corr_h2'
+        CORR_ESG_SHEET_NAME = 'corr_esg'
 
 
     class RegressionData:
