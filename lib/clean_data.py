@@ -2,6 +2,7 @@ import os
 from datetime import date
 import pandas as pd
 import numpy as np
+import openpyxl
 
 from lib.variable_names import Variables
 from lib.helpers import DataRoot, SmallFunction
@@ -83,7 +84,9 @@ class CleanBase(DataRoot):
         :return: None
         """
         # with pd.ExcelWriter(file_name) as writer:
-        with pd.ExcelWriter(os.path.join(self.cleaned_data_root, file_name)) as writer:
+        output_path = os.path.join(self.cleaned_data_root, file_name)
+        with pd.ExcelWriter(output_path) as writer:
+            writer.book = openpyxl.load_workbook(output_path)
             data.to_excel(writer, sheet_name=sheet_name, index=False)
 
 
