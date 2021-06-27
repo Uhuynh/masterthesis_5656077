@@ -16,8 +16,8 @@ M.Sc. International Management
 Summer Term 2021  
 
 # Table of Contents
-1. [Data Sources](#Data Sources)  
-   1.1.[Bloomberg Terminal](#Bloomberg Terminal)  
+1. [Data Sources](#data sources)  
+   1.1.[Bloomberg Terminal](#bloomberg terminal)  
    1.2. [Refinitiv](#Refinitiv)  
    1.3. [From supervisors](#From supervisors)
 2. [Workflow](#Workflow)  
