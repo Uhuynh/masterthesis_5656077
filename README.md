@@ -16,15 +16,15 @@ M.Sc. International Management
 Summer Term 2021  
 
 # Table of Contents
-1. [Data Sources](#data sources)  
-   1.1.[Bloomberg Terminal](#bloomberg terminal)  
-   1.2. [Refinitiv](#Refinitiv)  
-   1.3. [From supervisors](#From supervisors)
-2. [Workflow](#Workflow)  
-  2.1. [Clean Data - ETL Process](#Clean Data ETL Process)  
-   2.2. [Prepare Data for Regression](#Prepare Data for Regression)  
-   2.3. [Analyse Regression Data](#Analyse Regression Data)  
-   2.4. [Run Regression](#Run Regression)
+1. [Data Sources](#1-data-sources)  
+   1.1.[Bloomberg Terminal](#11-bloomberg-terminal)  
+   1.2. [Refinitiv](#12-refinitiv)  
+   1.3. [From supervisors](#13-from-supervisors)
+2. [Workflow](#2-workflow)  
+  2.1. [Clean Data - ETL Process](#21-clean-data---etl-extract---transform---load-process)  
+   2.2. [Prepare Data for Regression](#22-prepare-data-for-regression)  
+   2.3. [Analyse Regression Data](#23-analyse-regression-data)  
+   2.4. [Run Regression](#24-run-regression)
    
 ## 1. Data Sources
 Data used in the thesis (2006 - 2020) is collected from three sources based on a list of 226 selected European companies:  
