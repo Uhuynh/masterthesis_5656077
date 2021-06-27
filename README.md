@@ -25,6 +25,7 @@ Summer Term 2021
    2.2. [Prepare Data for Regression](#22-prepare-data-for-regression)  
    2.3. [Analyse Regression Data](#23-analyse-regression-data)  
    2.4. [Run Regression](#24-run-regression)
+3. [Technical Notes](#3-technical-notes)   
    
 ## 1. Data Sources
 Data used in the thesis (2006 - 2020) is collected from three sources based on a list of 226 selected European companies:  
@@ -86,3 +87,10 @@ Generated data is saved under ```data/descriptive stats/descriptive_stats.xlsx``
 This process is done in module ```lib/regression.py``` (using regression data generated from section 2.2.) and includes the following steps:
 * Run the main regressions for both hypotheses
 * Run additional analyses as well as robustness checks.
+
+## 3. Technical Notes
+The following techniques are used to make the project running:
+* Python 3.7
+* Virtual environment created automatically by Anaconda3
+* statsmodels package dev v0.13.0.dev0 https://www.statsmodels.org/devel/install.html 
+* Pycharm
