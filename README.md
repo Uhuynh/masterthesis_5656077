@@ -15,6 +15,17 @@ s4584479@stud.uni-frankfurt.de
 M.Sc. International Management  
 Summer Term 2021  
 
+# Table of Contents
+1. [Data Sources](#Data Sources)  
+   1.1.[Bloomberg Terminal](#Bloomberg Terminal)  
+   1.2. [Refinitiv](#Refinitiv)  
+   1.3. [From supervisors](#From supervisors)
+2. [Workflow](#Workflow)  
+  2.1. [Clean Data - ETL Process](#Clean Data ETL Process)  
+   2.2. [Prepare Data for Regression](#Prepare Data for Regression)  
+   2.3. [Analyse Regression Data](#Analyse Regression Data)  
+   2.4. [Run Regression](#Run Regression)
+   
 ## 1. Data Sources
 Data used in the thesis (2006 - 2020) is collected from three sources based on a list of 226 selected European companies:  
 * Bloomberg Terminal
@@ -74,4 +85,4 @@ Generated data is saved under ```data/descriptive stats/descriptive_stats.xlsx``
 ### 2.4. Run Regression
 This process is done in module ```lib/regression.py``` (using regression data generated from section 2.2.) and includes the following steps:
 * Run the main regressions for both hypotheses
-* Run addtional analyses as well as robustness checks.
+* Run additional analyses as well as robustness checks.
