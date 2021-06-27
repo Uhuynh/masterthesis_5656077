@@ -55,7 +55,7 @@ class AnalyseData(DataRoot):
             corr_h2.to_excel(writer, sheet_name=Variables.DescriptiveStats.CORR_H2_SHEET_NAME, index=False)
             corr_esg.to_excel(writer, sheet_name=Variables.DescriptiveStats.CORR_ESG_SHEET_NAME, index=False)
 
-        # generate pairplots
+        # generate pair plots
         self.pairplot(data_set='h1_refinitiv')
         self.pairplot(data_set='h1_spglobal')
         self.pairplot(data_set='h1_sustainalytics')
