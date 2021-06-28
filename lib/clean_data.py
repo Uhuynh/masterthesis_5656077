@@ -1,12 +1,11 @@
 import os
 from datetime import date
-import pandas as pd
-import numpy as np
-import openpyxl
 from pathlib import Path
+import numpy as np
+import pandas as pd
 
-from lib.variable_names import Variables
 from lib.helpers import DataRoot, SmallFunction
+from lib.variable_names import Variables
 
 """
 This module performs ETL process for raw data from all data sources.
@@ -76,7 +75,7 @@ class CleanBase(DataRoot):
 
     def load_data(self, data: pd.DataFrame, file_name: str, sheet_name: str) -> None:
         """
-        Write / append the transformed data to Excel file and save it under 'data/cleaned_data'.
+        Write / append the transformed data to Excel file and save it under 'data/cleaned_data/cleaned_data.xlsx'.
 
         :param data: a transformed data frame resulted from transform_data()
         :param file_name: file name that data will be written to (usually 'cleaned_data.xlsx')
