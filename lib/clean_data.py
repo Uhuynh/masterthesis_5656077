@@ -3,6 +3,7 @@ from datetime import date
 import pandas as pd
 import numpy as np
 import openpyxl
+from pathlib import Path
 
 from lib.variable_names import Variables
 from lib.helpers import DataRoot, SmallFunction
@@ -73,21 +74,25 @@ class CleanBase(DataRoot):
         """
         return data
 
-    # @staticmethod
     def load_data(self, data: pd.DataFrame, file_name: str, sheet_name: str) -> None:
         """
-        Write the transformed data to Excel file and save it under 'data/cleaned_data'.
+        Write / append the transformed data to Excel file and save it under 'data/cleaned_data'.
 
         :param data: a transformed data frame resulted from transform_data()
         :param file_name: file name that data will be written to (usually 'cleaned_data.xlsx')
         :param sheet_name: relevant sheet name, depending on data source
         :return: None
         """
-        # with pd.ExcelWriter(file_name) as writer:
-        output_path = os.path.join(self.cleaned_data_root, file_name)
-        with pd.ExcelWriter(output_path) as writer:
-            writer.book = openpyxl.load_workbook(output_path)
-            data.to_excel(writer, sheet_name=sheet_name, index=False)
+        output_file = os.path.join(self.cleaned_data_root, file_name)
+
+        # if the file exists -> append new sheet
+        if Path(output_file).is_file():
+            with pd.ExcelWriter(output_file, engine='openpyxl', mode='a') as writer:
+                data.to_excel(writer, sheet_name=sheet_name, index=False)
+
+        else:  # create new file and save
+            with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
+                data.to_excel(writer, sheet_name=sheet_name, index=False)
 
 
 class BloombergESG(CleanBase):
@@ -560,7 +565,7 @@ def clean_data_run(mode='all'):
     elif mode == 'accounting':
         BloombergAccounting().control()
 
-    else:
+    else: # i.e mode == 'all'
         BloombergESG().control()
         RefinitivESG().control()
         BloombergCreditRtg().control()
