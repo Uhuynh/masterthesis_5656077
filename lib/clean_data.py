@@ -565,7 +565,7 @@ def clean_data_run(mode='all'):
     elif mode == 'accounting':
         BloombergAccounting().control()
 
-    else: # i.e mode == 'all'
+    else:  # i.e mode == 'all'
         BloombergESG().control()
         RefinitivESG().control()
         BloombergCreditRtg().control()

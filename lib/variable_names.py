@@ -92,7 +92,7 @@ class Variables:
         File names of cleaned data.
         """
 
-        FILE_NAME = 'cleaned_data1.xlsx'
+        FILE_NAME = 'cleaned_data.xlsx'
         BLOOMBERG_ESG_SHEET_NAME = 'esg_bb'
         REFINITIV_ESG_SHEET_NAME = 'esg_refinitiv'
         SP_CREDIT_RTG_SHEET_NAME = 'sp_credit_rtg'
