@@ -7,7 +7,6 @@ from lib.prepare_data import PrepareData
 
 from statsmodels.miscmodels.ordinal_model import OrderedModel
 
-
 """
 This module runs regression for both hypotheses in the thesis.
 More details can be found in the documentation of each function of the class below.
@@ -50,6 +49,7 @@ class Regression:
             - 'size-impact': run additional analyses for size impact for hypothesis 1
 
         The results will be printed out in the console.
+        Note: the regression may take long time to execute and print results in the console.
         """
 
         if mode == 'main':
@@ -110,9 +110,11 @@ class Regression:
         base_mod_log = OrderedModel(data[Variables.RegressionData.DependentVar.H1_CREDIT_RTG],
                                     data[[
                                         Variables.RegressionData.IndependentVar.H1_ESG_RTG,
-                                        2007, 2008, 2009, 2010, 2011, 2012, 2013,  # year dummies (exclude one year, which is used as reference)
+                                        2007, 2008, 2009, 2010, 2011, 2012, 2013,
+                                        # year dummies (exclude one year, which is used as reference)
                                         2014, 2015, 2016, 2017, 2018, 2019,
-                                        'Energy and Natural Resources', 'Utility',  # industry dummies (exclude one industry, which is used as reference)
+                                        'Energy and Natural Resources', 'Utility',
+                                        # industry dummies (exclude one industry, which is used as reference)
                                         'BELGIUM',  # country dummies (exclude one country, which is used as reference)
                                         'BRITAIN', 'CZECH', 'DENMARK', 'FINLAND', 'FRANCE', 'GERMANY', 'GREECE',
                                         'HUNGARY', 'IRELAND', 'ITALY', 'LUXEMBOURG', 'NETHERLANDS', 'NORWAY',
@@ -136,7 +138,8 @@ class Regression:
                                           2013, 2014, 2015, 2016, 2017, 2018, 2019,
                                           'Energy and Natural Resources', 'Utility',
                                           'BELGIUM', 'BRITAIN', 'CZECH', 'DENMARK', 'FINLAND', 'FRANCE', 'GERMANY',
-                                          'GREECE', 'HUNGARY', 'IRELAND', 'ITALY', 'LUXEMBOURG', 'NETHERLANDS', 'NORWAY',
+                                          'GREECE', 'HUNGARY', 'IRELAND', 'ITALY', 'LUXEMBOURG', 'NETHERLANDS',
+                                          'NORWAY',
                                           'POLAND', 'PORTUGAL', 'RUSSIA', 'SPAIN', 'SWEDEN', 'SWITZERLAND', 'TURKEY',
                                           ]],
                                     distr='logit')
@@ -184,9 +187,11 @@ class Regression:
                                           2018,
                                           2019,
                                           2020,
-                                          'Energy and Natural Resources',  # industry dummies (exclude one industry, which is used as reference)
+                                          'Energy and Natural Resources',
+                                          # industry dummies (exclude one industry, which is used as reference)
                                           'Utility',
-                                          'BELGIUM',  # country dummies (exclude one country, which is used as reference)
+                                          'BELGIUM',
+                                          # country dummies (exclude one country, which is used as reference)
                                           'BRITAIN',
                                           'CZECH',
                                           'DENMARK',
@@ -224,9 +229,11 @@ class Regression:
                                           2018,
                                           2019,
                                           2020,
-                                          'Energy and Natural Resources',  # industry dummies (exclude one industry, which is used as reference)
+                                          'Energy and Natural Resources',
+                                          # industry dummies (exclude one industry, which is used as reference)
                                           'Utility',
-                                          'BELGIUM',  # country dummies (exclude one country, which is used as reference)
+                                          'BELGIUM',
+                                          # country dummies (exclude one country, which is used as reference)
                                           'BRITAIN',
                                           'CZECH',
                                           'DENMARK',
@@ -293,9 +300,11 @@ class Regression:
                                           2018,
                                           2019,
                                           2020,
-                                          'Energy and Natural Resources',  # industry dummies (exclude one industry, which is used as reference)
+                                          'Energy and Natural Resources',
+                                          # industry dummies (exclude one industry, which is used as reference)
                                           'Utility',
-                                          'BELGIUM',  # country dummies (exclude one country, which is used as reference)
+                                          'BELGIUM',
+                                          # country dummies (exclude one country, which is used as reference)
                                           'BRITAIN',
                                           'CZECH',
                                           'DENMARK',
@@ -332,9 +341,11 @@ class Regression:
                                           2018,
                                           2019,
                                           2020,
-                                          'Energy and Natural Resources',  # industry dummies (exclude one industry, which is used as reference)
+                                          'Energy and Natural Resources',
+                                          # industry dummies (exclude one industry, which is used as reference)
                                           'Utility',
-                                          'BELGIUM',  # country dummies (exclude one country, which is used as reference)
+                                          'BELGIUM',
+                                          # country dummies (exclude one country, which is used as reference)
                                           'BRITAIN',
                                           'CZECH',
                                           'DENMARK',
@@ -443,7 +454,7 @@ class Regression:
                                         Variables.RegressionData.ControlVar.H2_AVG_OMAR,
                                         Variables.RegressionData.ControlVar.H2_LONG_TERM_DUMMY,
                                         'Energy and Natural Resources', 'Utility',
-                                        'AZERBAIJAN', 'BELGIUM', 'BRITAIN',  'CROATIA', 'CZECH', 'DENMARK', 'ESTONIA',
+                                        'AZERBAIJAN', 'BELGIUM', 'BRITAIN', 'CROATIA', 'CZECH', 'DENMARK', 'ESTONIA',
                                         'FINLAND', 'FRANCE', 'GERMANY', 'GREECE', 'HUNGARY', 'ICELAND', 'IRELAND',
                                         'ITALY', 'LUXEMBOURG', 'NETHERLANDS', 'NORWAY', 'POLAND', 'PORTUGAL', 'RUSSIA',
                                         'SLOVAKIA', 'SLOVENIA', 'SPAIN', 'SWEDEN', 'SWITZERLAND', 'TURKEY', 'UKRAINE'
@@ -479,8 +490,10 @@ class Regression:
         sub_data1 = sub_data1.loc[:, (sub_data1 != 0).any(axis=0)]  # remove redundant dummies
 
         # convert dependent variable to categorical type (as required to run ordered logistic regression)
-        change_type = CategoricalDtype(categories=sorted(sub_data1[Variables.RegressionData.DependentVar.H1_CREDIT_RTG].unique()), ordered=True)
-        sub_data1[Variables.RegressionData.DependentVar.H1_CREDIT_RTG] = sub_data1[Variables.RegressionData.DependentVar.H1_CREDIT_RTG].astype(change_type)
+        change_type = CategoricalDtype(
+            categories=sorted(sub_data1[Variables.RegressionData.DependentVar.H1_CREDIT_RTG].unique()), ordered=True)
+        sub_data1[Variables.RegressionData.DependentVar.H1_CREDIT_RTG] = sub_data1[
+            Variables.RegressionData.DependentVar.H1_CREDIT_RTG].astype(change_type)
 
         # ordered logistic regression
         full_mod_log = OrderedModel(sub_data1[Variables.RegressionData.DependentVar.H1_CREDIT_RTG],
@@ -736,11 +749,13 @@ class Regression:
         #
 
         # re-generate data
-        sub_data1 = PrepareData().hypothesis2_main(h2_monthly=self.regression_data_dict['h2_monthly'], start_year=2006, end_year=2016)
+        sub_data1 = PrepareData().hypothesis2_main(h2_monthly=self.regression_data_dict['h2_monthly'], start_year=2006,
+                                                   end_year=2016)
 
         # convert credit rating changes to categorical variable
         change_type = CategoricalDtype(
-            categories=sorted(sub_data1[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].unique()), ordered=True)
+            categories=sorted(sub_data1[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].unique()),
+            ordered=True)
         sub_data1[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE] = sub_data1[
             Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].astype(change_type)
 
@@ -754,7 +769,8 @@ class Regression:
                                                 Variables.RegressionData.ControlVar.H2_LONG_TERM_DUMMY,
                                                 'Energy and Natural Resources', 'Utility',
                                                 'AZERBAIJAN', 'BELGIUM', 'BRITAIN', 'CROATIA', 'CZECH', 'DENMARK',
-                                                'ESTONIA', 'FINLAND', 'FRANCE', 'GERMANY', 'GREECE', 'HUNGARY', 'ICELAND',
+                                                'ESTONIA', 'FINLAND', 'FRANCE', 'GERMANY', 'GREECE', 'HUNGARY',
+                                                'ICELAND',
                                                 'IRELAND', 'ITALY', 'LUXEMBOURG', 'NETHERLANDS', 'NORWAY', 'POLAND',
                                                 'PORTUGAL', 'RUSSIA', 'SLOVAKIA', 'SLOVENIA', 'SPAIN', 'SWEDEN',
                                                 'SWITZERLAND', 'TURKEY', 'UKRAINE'
@@ -771,11 +787,13 @@ class Regression:
         #
 
         # re-generate data
-        sub_data2 = PrepareData().hypothesis2_main(h2_monthly=self.regression_data_dict['h2_monthly'], start_year=2010, end_year=2019)
+        sub_data2 = PrepareData().hypothesis2_main(h2_monthly=self.regression_data_dict['h2_monthly'], start_year=2010,
+                                                   end_year=2019)
 
         # convert credit rating changes to categorical variable
         change_type = CategoricalDtype(
-            categories=sorted(sub_data2[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].unique()), ordered=True)
+            categories=sorted(sub_data2[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].unique()),
+            ordered=True)
         sub_data2[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE] = sub_data2[
             Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].astype(change_type)
 
@@ -789,7 +807,8 @@ class Regression:
                                                 Variables.RegressionData.ControlVar.H2_LONG_TERM_DUMMY,
                                                 'Energy and Natural Resources', 'Utility',
                                                 'AZERBAIJAN', 'BELGIUM', 'BRITAIN', 'CROATIA', 'CZECH', 'DENMARK',
-                                                'ESTONIA', 'FINLAND', 'FRANCE', 'GERMANY', 'GREECE', 'HUNGARY', 'ICELAND',
+                                                'ESTONIA', 'FINLAND', 'FRANCE', 'GERMANY', 'GREECE', 'HUNGARY',
+                                                'ICELAND',
                                                 'IRELAND', 'ITALY', 'LUXEMBOURG', 'NETHERLANDS', 'NORWAY', 'POLAND',
                                                 'PORTUGAL', 'RUSSIA', 'SLOVAKIA', 'SLOVENIA', 'SPAIN', 'SWEDEN',
                                                 'SWITZERLAND', 'TURKEY', 'UKRAINE'
@@ -842,7 +861,8 @@ class Regression:
                                      ]],
                                      distr='logit')
         res_log1 = full_mod_log1.fit(method='bfgs')
-        print('Main result of full regression of hypothesis 1 using Refinitiv dataset, separated by Aerospace/Automotive/Capital Goods/Metal industry...')
+        print(
+            'Main result of full regression of hypothesis 1 using Refinitiv dataset, separated by Aerospace/Automotive/Capital Goods/Metal industry...')
         print(res_log1.summary())
         print('Pseudo R squared of the regression is: ')
         print(res_log1.prsquared)
@@ -873,7 +893,8 @@ class Regression:
                                      ]],
                                      distr='logit')
         res_log2 = full_mod_log2.fit(method='bfgs')
-        print( 'Main result of full regression of hypothesis 1 using Refinitiv dataset, separated by Energy and Natural Resources industry...')
+        print(
+            'Main result of full regression of hypothesis 1 using Refinitiv dataset, separated by Energy and Natural Resources industry...')
         print(res_log2.summary())
         print('Pseudo R squared of the regression is: ')
         print(res_log2.prsquared)
@@ -904,7 +925,8 @@ class Regression:
                                      ]],
                                      distr='logit')
         res_log3 = full_mod_log3.fit(method='bfgs')
-        print('Main result of full regression of hypothesis 1 using Refinitiv dataset, separated by Utility industry...')
+        print(
+            'Main result of full regression of hypothesis 1 using Refinitiv dataset, separated by Utility industry...')
         print(res_log3.summary())
         print('Pseudo R squared of the regression is: ')
         print(res_log3.prsquared)
@@ -932,7 +954,8 @@ class Regression:
 
         # convert dependent variable to categorical type (as required to run ordered logistic regression)
         change_type = CategoricalDtype(
-            categories=sorted(sub_data1[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].unique()), ordered=True)
+            categories=sorted(sub_data1[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].unique()),
+            ordered=True)
         sub_data1[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE] = sub_data1[
             Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].astype(change_type)
 
@@ -951,7 +974,8 @@ class Regression:
                                      ]],
                                      distr='logit')
         res_log1 = full_mod_log1.fit(method='bfgs')
-        print('Main result of full regression of hypothesis 2, separated by Aerospace/Automotive/Capital Goods/Metal industry...')
+        print(
+            'Main result of full regression of hypothesis 2, separated by Aerospace/Automotive/Capital Goods/Metal industry...')
         print(res_log1.summary())
         print('Pseudo R squared of the regression is: ')
         print(res_log1.prsquared)
@@ -964,7 +988,8 @@ class Regression:
 
         # convert dependent variable to categorical type (as required to run ordered logistic regression)
         change_type = CategoricalDtype(
-            categories=sorted(sub_data2[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].unique()), ordered=True)
+            categories=sorted(sub_data2[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].unique()),
+            ordered=True)
         sub_data2[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE] = sub_data2[
             Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].astype(change_type)
 
@@ -995,7 +1020,8 @@ class Regression:
 
         # convert dependent variable to categorical type (as required to run ordered logistic regression)
         change_type = CategoricalDtype(
-            categories=sorted(sub_data3[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].unique()), ordered=True)
+            categories=sorted(sub_data3[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].unique()),
+            ordered=True)
         sub_data3[Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE] = sub_data3[
             Variables.RegressionData.DependentVar.H2_CREDIT_RTG_CHANGE].astype(change_type)
 
@@ -1008,12 +1034,13 @@ class Regression:
                                          Variables.RegressionData.ControlVar.H2_AVG_ICOV,
                                          Variables.RegressionData.ControlVar.H2_AVG_OMAR,
                                          Variables.RegressionData.ControlVar.H2_LONG_TERM_DUMMY,
-                                         'BELGIUM', 'BRITAIN', 'CROATIA', 'CZECH', 'DENMARK', 'ESTONIA', 'FINLAND', 'FRANCE',
+                                         'BELGIUM', 'BRITAIN', 'CROATIA', 'CZECH', 'DENMARK', 'ESTONIA', 'FINLAND',
+                                         'FRANCE',
                                          'GERMANY', 'GREECE', 'ICELAND', 'IRELAND', 'ITALY', 'NETHERLANDS',
                                          'NORWAY', 'POLAND', 'PORTUGAL', 'RUSSIA', 'SLOVAKIA', 'SPAIN', 'SWEDEN'
                                      ]],
                                      distr='logit')
-        res_log3 = full_mod_log3.fit(method='bfgs')
+        res_log3 = full_mod_log3.fit(method='lbfgs')
         print('Main result of full regression of hypothesis 2, separated by Utility industry...')
         print(res_log3.summary())
         print('Pseudo R squared of the regression is: ')
@@ -1039,11 +1066,16 @@ class Regression:
         sub_data1 = []
         for company in data[Variables.BloombergDB.FIELDS.BB_TICKER].unique():
             df = data.loc[data[Variables.BloombergDB.FIELDS.BB_TICKER] == company]
-            df[Variables.RegressionData.IndependentVar.H1_ESG_RTG] = df[Variables.RegressionData.IndependentVar.H1_ESG_RTG].shift(periods=12)
-            df[Variables.RegressionData.ControlVar.H1_SIZE] = df[Variables.RegressionData.ControlVar.H1_SIZE].shift(periods=12)
-            df[Variables.RegressionData.ControlVar.H1_LEV] = df[Variables.RegressionData.ControlVar.H1_LEV].shift(periods=12)
-            df[Variables.RegressionData.ControlVar.H1_ICOV] = df[Variables.RegressionData.ControlVar.H1_ICOV].shift(periods=12)
-            df[Variables.RegressionData.ControlVar.H1_OMAR] = df[Variables.RegressionData.ControlVar.H1_OMAR].shift(periods=12)
+            df[Variables.RegressionData.IndependentVar.H1_ESG_RTG] = df[
+                Variables.RegressionData.IndependentVar.H1_ESG_RTG].shift(periods=12)
+            df[Variables.RegressionData.ControlVar.H1_SIZE] = df[Variables.RegressionData.ControlVar.H1_SIZE].shift(
+                periods=12)
+            df[Variables.RegressionData.ControlVar.H1_LEV] = df[Variables.RegressionData.ControlVar.H1_LEV].shift(
+                periods=12)
+            df[Variables.RegressionData.ControlVar.H1_ICOV] = df[Variables.RegressionData.ControlVar.H1_ICOV].shift(
+                periods=12)
+            df[Variables.RegressionData.ControlVar.H1_OMAR] = df[Variables.RegressionData.ControlVar.H1_OMAR].shift(
+                periods=12)
             sub_data1.append(df)
         sub_data1 = pd.concat(sub_data1)
         sub_data1 = sub_data1.dropna(how='any')
@@ -1070,7 +1102,8 @@ class Regression:
                                     ]],
                                     distr='logit')
         res_log = full_mod_log.fit(method='bfgs')
-        print('Main result for full regression of hypothesis 1 using dataset from Refinitiv with explanatory variables lagged by 12 months...')
+        print(
+            'Main result for full regression of hypothesis 1 using dataset from Refinitiv with explanatory variables lagged by 12 months...')
         print(res_log.summary())
         print('Pseudo R squared of the regression is: ')
         print(res_log.prsquared)
@@ -1081,19 +1114,26 @@ class Regression:
         sub_data2 = []
         for company in data[Variables.BloombergDB.FIELDS.BB_TICKER].unique():
             df = data.loc[data[Variables.BloombergDB.FIELDS.BB_TICKER] == company]
-            df[Variables.RegressionData.IndependentVar.H1_ESG_RTG] = df[Variables.RegressionData.IndependentVar.H1_ESG_RTG].shift(periods=24)
-            df[Variables.RegressionData.ControlVar.H1_SIZE] = df[Variables.RegressionData.ControlVar.H1_SIZE].shift(periods=12)
-            df[Variables.RegressionData.ControlVar.H1_LEV] = df[Variables.RegressionData.ControlVar.H1_LEV].shift(periods=12)
-            df[Variables.RegressionData.ControlVar.H1_ICOV] = df[Variables.RegressionData.ControlVar.H1_ICOV].shift(periods=12)
-            df[Variables.RegressionData.ControlVar.H1_OMAR] = df[Variables.RegressionData.ControlVar.H1_OMAR].shift(periods=12)
+            df[Variables.RegressionData.IndependentVar.H1_ESG_RTG] = df[
+                Variables.RegressionData.IndependentVar.H1_ESG_RTG].shift(periods=24)
+            df[Variables.RegressionData.ControlVar.H1_SIZE] = df[Variables.RegressionData.ControlVar.H1_SIZE].shift(
+                periods=12)
+            df[Variables.RegressionData.ControlVar.H1_LEV] = df[Variables.RegressionData.ControlVar.H1_LEV].shift(
+                periods=12)
+            df[Variables.RegressionData.ControlVar.H1_ICOV] = df[Variables.RegressionData.ControlVar.H1_ICOV].shift(
+                periods=12)
+            df[Variables.RegressionData.ControlVar.H1_OMAR] = df[Variables.RegressionData.ControlVar.H1_OMAR].shift(
+                periods=12)
             sub_data2.append(df)
         sub_data2 = pd.concat(sub_data2)
         sub_data2 = sub_data2.dropna(how='any')
         sub_data2 = sub_data2.loc[:, (sub_data2 != 0).any(axis=0)]
 
         # convert dependent variable to categorical type (as required to run ordered logistic regression)
-        change_type = CategoricalDtype(categories=sorted(sub_data2[Variables.RegressionData.DependentVar.H1_CREDIT_RTG].unique()), ordered=True)
-        sub_data2[Variables.RegressionData.DependentVar.H1_CREDIT_RTG] = sub_data2[Variables.RegressionData.DependentVar.H1_CREDIT_RTG].astype(change_type)
+        change_type = CategoricalDtype(
+            categories=sorted(sub_data2[Variables.RegressionData.DependentVar.H1_CREDIT_RTG].unique()), ordered=True)
+        sub_data2[Variables.RegressionData.DependentVar.H1_CREDIT_RTG] = sub_data2[
+            Variables.RegressionData.DependentVar.H1_CREDIT_RTG].astype(change_type)
 
         full_mod_log = OrderedModel(sub_data2[Variables.RegressionData.DependentVar.H1_CREDIT_RTG],
                                     sub_data2[[
@@ -1110,7 +1150,8 @@ class Regression:
                                     ]],
                                     distr='logit')
         res_log = full_mod_log.fit(method='bfgs')
-        print('Main result for full regression of hypothesis 1 using dataset from Refinitiv with explanatory variables lagged by 24 months...')
+        print(
+            'Main result for full regression of hypothesis 1 using dataset from Refinitiv with explanatory variables lagged by 24 months...')
         print(res_log.summary())
         print('Pseudo R squared of the regression is: ')
         print(res_log.prsquared)
@@ -1133,7 +1174,8 @@ class Regression:
 
         # convert credit rating changes to categorical variable
         change_type = CategoricalDtype(
-            categories=sorted(data[Variables.RegressionData.DependentVar.H2_MONTHLY_CREDIT_RTG_CHANGE].unique()), ordered=True)
+            categories=sorted(data[Variables.RegressionData.DependentVar.H2_MONTHLY_CREDIT_RTG_CHANGE].unique()),
+            ordered=True)
         data[Variables.RegressionData.DependentVar.H2_MONTHLY_CREDIT_RTG_CHANGE] = data[
             Variables.RegressionData.DependentVar.H2_MONTHLY_CREDIT_RTG_CHANGE].astype(change_type)
 
@@ -1146,16 +1188,18 @@ class Regression:
                                         Variables.RegressionData.ControlVar.H1_ICOV,
                                         Variables.RegressionData.ControlVar.H1_OMAR,
                                         2007, 2008, 2009, 2010, 2011, 2012, 2013,
-                                        2014, 2015, 2016,  2017, 2018, 2019, 2020,
+                                        2014, 2015, 2016, 2017, 2018, 2019, 2020,
                                         'Energy and Natural Resources', 'Utility',
                                         'AZERBAIJAN', 'BELGIUM', 'BRITAIN', 'CROATIA', 'CZECH', 'DENMARK', 'ESTONIA',
                                         'FINLAND', 'FRANCE', 'GERMANY', 'GREECE', 'HUNGARY', 'ICELAND', 'IRELAND',
                                         'ITALY', 'LUXEMBOURG', 'NETHERLANDS', 'NORWAY', 'POLAND', 'PORTUGAL',
-                                        'RUSSIA', 'SLOVAKIA', 'SLOVENIA', 'SPAIN', 'SWEDEN', 'SWITZERLAND', 'TURKEY', 'UKRAINE'
+                                        'RUSSIA', 'SLOVAKIA', 'SLOVENIA', 'SPAIN', 'SWEDEN', 'SWITZERLAND', 'TURKEY',
+                                        'UKRAINE'
                                     ]],
                                     distr='logit')
         res_log = full_mod_log.fit(method='bfgs')
-        print('Main result for full regression of hypothesis 2 with monthly credit rating changes as dependent variable ...')
+        print(
+            'Main result for full regression of hypothesis 2 with monthly credit rating changes as dependent variable ...')
         print(res_log.summary())
         print('Pseudo R squared of the regression is: ')
         print(res_log.prsquared)
@@ -1166,11 +1210,14 @@ class Regression:
         data = self.regression_data_dict['h2_yearly'].copy(deep=True)
 
         # convert credit rating changes to categorical variable
-        change_type = CategoricalDtype(categories=sorted(data[Variables.RegressionData.DependentVar.H2_MONTHLY_CREDIT_RTG_CHANGE].unique()), ordered=True)
-        data[Variables.RegressionData.DependentVar.H2_MONTHLY_CREDIT_RTG_CHANGE] = data[Variables.RegressionData.DependentVar.H2_MONTHLY_CREDIT_RTG_CHANGE].astype(change_type)
+        change_type = CategoricalDtype(
+            categories=sorted(data[Variables.RegressionData.DependentVar.H2_YEARLY_CREDIT_RTG_CHANGE].unique()),
+            ordered=True)
+        data[Variables.RegressionData.DependentVar.H2_YEARLY_CREDIT_RTG_CHANGE] = data[
+            Variables.RegressionData.DependentVar.H2_YEARLY_CREDIT_RTG_CHANGE].astype(change_type)
 
         # ordered logistic regression
-        full_mod_log = OrderedModel(data[Variables.RegressionData.DependentVar.H2_MONTHLY_CREDIT_RTG_CHANGE],
+        full_mod_log = OrderedModel(data[Variables.RegressionData.DependentVar.H2_YEARLY_CREDIT_RTG_CHANGE],
                                     data[[
                                         Variables.RegressionData.IndependentVar.H2_ESG_RATED_DUMMY,
                                         Variables.RegressionData.ControlVar.H1_SIZE,
@@ -1183,11 +1230,13 @@ class Regression:
                                         'AZERBAIJAN', 'BELGIUM', 'BRITAIN', 'CROATIA', 'CZECH', 'DENMARK', 'ESTONIA',
                                         'FINLAND', 'FRANCE', 'GERMANY', 'GREECE', 'HUNGARY', 'ICELAND', 'IRELAND',
                                         'ITALY', 'LUXEMBOURG', 'NETHERLANDS', 'NORWAY', 'POLAND', 'PORTUGAL',
-                                        'RUSSIA', 'SLOVAKIA', 'SLOVENIA', 'SPAIN', 'SWEDEN', 'SWITZERLAND', 'TURKEY', 'UKRAINE'
+                                        'RUSSIA', 'SLOVAKIA', 'SLOVENIA', 'SPAIN', 'SWEDEN', 'SWITZERLAND', 'TURKEY',
+                                        'UKRAINE'
                                     ]],
                                     distr='logit')
         res_log = full_mod_log.fit(method='bfgs')
-        print('Main result for full regression of hypothesis 2 with yearly credit rating changes as dependent variable ...')
+        print(
+            'Main result for full regression of hypothesis 2 with yearly credit rating changes as dependent variable ...')
         print(res_log.summary())
         print('Pseudo R squared of the regression is: ')
         print(res_log.prsquared)
@@ -1245,8 +1294,10 @@ class Regression:
         sub_data2 = sub_data2.loc[:, (sub_data2 != 0).any(axis=0)]  # remove redundant dummies
 
         # convert dependent variable to categorical type (as required to run ordered logistic regression)
-        change_type = CategoricalDtype(categories=sorted(sub_data2[Variables.RegressionData.DependentVar.H1_CREDIT_RTG].unique()), ordered=True)
-        sub_data2[Variables.RegressionData.DependentVar.H1_CREDIT_RTG] = sub_data2[Variables.RegressionData.DependentVar.H1_CREDIT_RTG].astype(change_type)
+        change_type = CategoricalDtype(
+            categories=sorted(sub_data2[Variables.RegressionData.DependentVar.H1_CREDIT_RTG].unique()), ordered=True)
+        sub_data2[Variables.RegressionData.DependentVar.H1_CREDIT_RTG] = sub_data2[
+            Variables.RegressionData.DependentVar.H1_CREDIT_RTG].astype(change_type)
 
         # ordered logistic regression
         full_mod_log = OrderedModel(sub_data2[Variables.RegressionData.DependentVar.H1_CREDIT_RTG],
@@ -1258,8 +1309,10 @@ class Regression:
                                         Variables.RegressionData.ControlVar.H1_OMAR,
                                         2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
                                         'Energy and Natural Resources', 'Utility',
-                                        'BELGIUM', 'BRITAIN', 'FINLAND', 'FRANCE', 'GERMANY', 'IRELAND', 'ITALY', 'LUXEMBOURG',
-                                        'NORWAY', 'POLAND', 'PORTUGAL', 'RUSSIA', 'SPAIN', 'SWEDEN', 'SWITZERLAND', 'TURKEY'
+                                        'BELGIUM', 'BRITAIN', 'FINLAND', 'FRANCE', 'GERMANY', 'IRELAND', 'ITALY',
+                                        'LUXEMBOURG',
+                                        'NORWAY', 'POLAND', 'PORTUGAL', 'RUSSIA', 'SPAIN', 'SWEDEN', 'SWITZERLAND',
+                                        'TURKEY'
                                     ]],
                                     distr='logit')
         res_log = full_mod_log.fit(method='bfgs')
@@ -1270,5 +1323,5 @@ class Regression:
 
 
 if __name__ == "__main__":
-    Regression().control()
+    Regression().control(mode='main')
     pass

@@ -108,8 +108,8 @@ class Variables:
         FILE_NAME = 'descriptive_stats.xlsx'
         DESCRIPTIVE_STATS_SHEET_NAME = 'descriptive_stats'
         CORR_H1_REFINITIV_SHEET_NAME = 'corr_h1_refinitiv'
-        CORR_H1_SPGLOBAL_SHEET_NAME = 'corr_h1_refinitiv'
-        CORR_H1_SUSTAINALYTICS_SHEET_NAME = 'corr_h1_refinitiv'
+        CORR_H1_SPGLOBAL_SHEET_NAME = 'corr_h1_spglobal'
+        CORR_H1_SUSTAINALYTICS_SHEET_NAME = 'corr_h1_sustainalytics'
         CORR_H2_SHEET_NAME = 'corr_h2'
         CORR_ESG_SHEET_NAME = 'corr_esg'
 

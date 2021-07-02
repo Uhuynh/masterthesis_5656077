@@ -551,7 +551,7 @@ def clean_data_run(mode='all'):
         - 'accounting': accounting data
         - 'all': all data sources mentioned above (Note: this may takes long time)
 
-    Generated data will be all saved in 'data/cleaned_data/cleaned_data.xlsx'.
+    Generated data will be saved in 'data/cleaned_data/cleaned_data.xlsx'.
     """
 
     if mode == 'bloomberg_esg':
@@ -567,10 +567,16 @@ def clean_data_run(mode='all'):
         BloombergAccounting().control()
 
     else:  # i.e mode == 'all'
-        BloombergESG().control()
-        RefinitivESG().control()
-        BloombergCreditRtg().control()
-        BloombergAccounting().control()
+
+        try:
+            BloombergESG().control()
+            RefinitivESG().control()
+            BloombergCreditRtg().control()
+            BloombergAccounting().control()
+            print('All raw data are successfully cleaned and transformed and saved under data/cleaned_data/cleaned_data.xlsx')
+
+        except BaseException as be:
+            print(be)
 
 
 if __name__ == "__main__":

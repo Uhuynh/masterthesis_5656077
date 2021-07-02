@@ -1,14 +1,10 @@
 import os
-from datetime import date
-
 import pandas as pd
-from pandas.api.types import CategoricalDtype
-from scipy import stats
 from scipy.stats.mstats import winsorize
 
-from lib.helpers import SmallFunction, DataRoot, ExtractData
+from lib.helpers import DataRoot, ExtractData
 from lib.variable_names import Variables
-# from statsmodels.miscmodels.ordinal_model import OrderedModel
+
 
 """
 This module performs data preparation process for running regression.
@@ -60,7 +56,7 @@ class PrepareData(DataRoot):
             h1_spglobal = self.hypothesis1(data=self.cleaned_data_dict['spglobal'])
             h1_sustainalytics = self.hypothesis1(data=self.cleaned_data_dict['sustainalytics'])
 
-            with pd.ExcelWriter(Variables.RegressionData.FILES.H1_FILE_NAME) as writer:
+            with pd.ExcelWriter(os.path.join(self.cleaned_data_root, Variables.RegressionData.FILES.H1_FILE_NAME)) as writer:
                 h1_refinitiv.to_excel(writer, sheet_name=Variables.RegressionData.FILES.H1_REFINITIV_SHEET_NAME, index=False)
                 h1_spglobal.to_excel(writer, sheet_name=Variables.RegressionData.FILES.H1_SPGLOBAL_SHEET_NAME, index=False)
                 h1_sustainalytics.to_excel(writer, sheet_name=Variables.RegressionData.FILES.H1_SUSTAINALYTICS_SHEET_NAME, index=False)
@@ -72,7 +68,7 @@ class PrepareData(DataRoot):
             h2_yearly = self.hypothesis2_yearly()
             h2_main = self.hypothesis2_main(h2_monthly, start_year=2006, end_year=2020)
 
-            with pd.ExcelWriter(Variables.RegressionData.FILES.H2_FILE_NAME) as writer:
+            with pd.ExcelWriter(os.path.join(self.cleaned_data_root, Variables.RegressionData.FILES.H2_FILE_NAME)) as writer:
                 h2_monthly.to_excel(writer, sheet_name=Variables.RegressionData.FILES.H2_MONTHLY_DATA_SHEET_NAME, index=False)
                 h2_yearly.to_excel(writer, sheet_name=Variables.RegressionData.FILES.H2_YEARLY_DATA_SHEET_NAME, index=False)
                 h2_main.to_excel(writer, sheet_name=Variables.RegressionData.FILES.H2_MAIN_DATA_SHEET_NAME, index=False)

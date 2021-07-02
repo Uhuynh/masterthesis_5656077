@@ -36,9 +36,9 @@ class AnalyseData(DataRoot):
         descriptive_stat = self.descriptive_stat()
 
         # get correlation matrix of each dataset of hypothesis 1
-        corr_h1_refinitiv = self.corr_h1(data_set='refinitiv')
-        corr_h1_spglobal = self.corr_h1(data_set='spglobal')
-        corr_h1_sustainalytics = self.corr_h1(data_set='sustainalytics')
+        corr_h1_refinitiv = self.corr_h1(data_set='h1_refinitiv')
+        corr_h1_spglobal = self.corr_h1(data_set='h1_spglobal')
+        corr_h1_sustainalytics = self.corr_h1(data_set='h1_sustainalytics')
 
         # get correlation matrix of hypothesis 2
         corr_h2 = self.corr_h2(data=self.regression_data_dict['h2_main'])
@@ -47,7 +47,7 @@ class AnalyseData(DataRoot):
         corr_esg = self.corr_esg_ratings_common_sample()
 
         # export all generated data to Excel file saved under 'data/descriptive stats/descriptive_stats.xlsx'
-        with pd.ExcelWriter(os.path.join(self.cleaned_data_root, Variables.DescriptiveStats.FILE_NAME)) as writer:
+        with pd.ExcelWriter(os.path.join(self.descriptive_stats_root, Variables.DescriptiveStats.FILE_NAME)) as writer:
             descriptive_stat.to_excel(writer, sheet_name=Variables.DescriptiveStats.DESCRIPTIVE_STATS_SHEET_NAME, index=False)
             corr_h1_refinitiv.to_excel(writer, sheet_name=Variables.DescriptiveStats.CORR_H1_REFINITIV_SHEET_NAME, index=False)
             corr_h1_spglobal.to_excel(writer, sheet_name=Variables.DescriptiveStats.CORR_H1_SPGLOBAL_SHEET_NAME, index=False)
@@ -210,9 +210,7 @@ class AnalyseData(DataRoot):
             result.append(df_summary)
         result = pd.concat(result)
         result = result.reset_index(drop=True)
-        # print(stats.pearsonr(common_sample[Variables.RefinitivESG.TOTAL], common_sample[Variables.SPGlobalESG.TOTAL]))
-        # print(stats.pearsonr(common_sample[Variables.RefinitivESG.TOTAL], common_sample[Variables.SustainalyticsESG.TOTAL]))
-        # print(stats.pearsonr(common_sample[Variables.SPGlobalESG.TOTAL], common_sample[Variables.SustainalyticsESG.TOTAL]))
+
         return result
 
     def pairplot(self, data_set='h1_refinitiv'):
@@ -242,9 +240,9 @@ class AnalyseData(DataRoot):
             all_var = [
                 Variables.RegressionData.DependentVar.H1_CREDIT_RTG,
                 Variables.RegressionData.IndependentVar.H1_ESG_RTG,
-                Variables.RegressionData.IndependentVar.H1_ESG_ENV,
-                Variables.RegressionData.IndependentVar.H1_ESG_SOC,
-                Variables.RegressionData.IndependentVar.H1_ESG_GOV,
+                # Variables.RegressionData.IndependentVar.H1_ESG_ENV,
+                # Variables.RegressionData.IndependentVar.H1_ESG_SOC,
+                # Variables.RegressionData.IndependentVar.H1_ESG_GOV,
                 Variables.RegressionData.ControlVar.H1_SIZE,
                 Variables.RegressionData.ControlVar.H1_LEV,
                 Variables.RegressionData.ControlVar.H1_ICOV,
