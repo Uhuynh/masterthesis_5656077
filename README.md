@@ -49,6 +49,11 @@ The workflow of the project is organized as follows:
 
 ![](static/master_thesis_workflow.png)
 
+It is important to test the modules in the following order:  
+    1. ```lib/clean_data.py```  
+    2. ```lib/prepare_data.py```  
+    3. ```lib/analyse_data.py```  
+    4. ```lib/regression.py```
 ### 2.1. Clean Data - ETL (Extract - Transform - Load) Process
 This process is done in module ```lib/clean_data.py``` and includes the following steps:
 * Extract raw data from downloaded Excel files (as mentioned in Section 1.)

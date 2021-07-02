@@ -24,7 +24,7 @@ https://www.statsmodels.org/devel/examples/notebooks/generated/ordinal_regressio
 
 It is important to successfully install the required version before running this module
 https://www.statsmodels.org/devel/install.html
-or one can simply run git clone git://github.com/statsmodels/statsmodels.git in the console and mark the statsmodels as
+or one can simply run 'git clone git://github.com/statsmodels/statsmodels.git' in the console and mark the statsmodels as
 source directory.
 """
 
@@ -48,6 +48,8 @@ class Regression:
             - 'endogeneity': run endogeneity check for hypothesis 1
             - 'alternative-model': run alternative regression models for hypothesis 2
             - 'size-impact': run additional analyses for size impact for hypothesis 1
+
+        The results will be printed out in the console.
         """
 
         if mode == 'main':

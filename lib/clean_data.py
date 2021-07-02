@@ -483,8 +483,8 @@ class BloombergAccounting(BloombergESG):
         data = self.extract_data(file_name=Variables.BloombergDB.FILES.RAW_DATA_FILE_NAME,
                                  sheet_name=Variables.BloombergDB.FILES.ACCOUNTING_DATA_SHEET_NAME)
         data_t = self.transform_data(data)
-        # self.load_data(data=data_t, file_name=self.cleaned_file_name,
-        #                sheet_name=Variables.CleanedData.ACCOUNTING_SHEET_NAME)
+        self.load_data(data=data_t, file_name=self.cleaned_file_name,
+                       sheet_name=Variables.CleanedData.ACCOUNTING_SHEET_NAME)
 
         data = self.calculate_control_var(data_t)
         populated_data = self.populate(data)
@@ -508,7 +508,7 @@ class BloombergAccounting(BloombergESG):
 
     def populate(self, data: pd.DataFrame) -> pd.DataFrame:
         """
-        Populate accounting data to monthly data from 2006 - 2020.
+        Populate accounting data from yearly data to monthly data over the period between 2006 and 2020.
 
         :param data: transformed accounting data received from transform_data()
         """
@@ -550,6 +550,8 @@ def clean_data_run(mode='all'):
         - 'credit_rating': S&P credit ratings data
         - 'accounting': accounting data
         - 'all': all data sources mentioned above (Note: this may takes long time)
+
+    Generated data will be all saved in 'data/cleaned_data/cleaned_data.xlsx'.
     """
 
     if mode == 'bloomberg_esg':
